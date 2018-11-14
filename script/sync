@@ -1,6 +1,6 @@
 #!/bin/bash
 # Copyright: 2017 - 2018 - MIT License
-# Source: https://github.com/envygeeks/devfiles
+# Source: https://github.com/envygeeks/devf
 # Author: Jordon Bedwell
 # --
 
@@ -27,7 +27,7 @@ sync_language=$(git config envygeeks.language || echo "")
 skip_if_external=(CONTRIBUTING.md CODE_OF_CONDUCT.md .github/codeowners)
 skip_if_external+=(.github/issue_template.md .github/pull_request_template.md)
 external=$(git config envygeeks.external || echo "false")
-github_url=https://github.com/envygeeks/devfiles.git
+github_url=https://github.com/envygeeks/devf.git
 copy_to=$PWD
 
 # --
