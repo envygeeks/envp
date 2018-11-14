@@ -1,0 +1,18 @@
+#!/bin/bash -l
+set -ex
+
+rm -rf   binaries
+mkdir -p binaries
+env GOOS=linux   GOARCH=amd64 go build -v -ldflags '-s -w' -o binaries/envp-linux-amd64
+env GOOS=linux   GOARCH=arm64 go build -v -ldflags '-s -w' -o binaries/envp-linux-arm64
+env GOOS=linux   GOARCH=arm   go build -v -ldflags '-s -w' -o binaries/envp-linux-arm
+env GOOS=linux   GOARCH=386   go build -v -ldflags '-s -w' -o binaries/envp-linux-i386
+env GOOS=windows GOARCH=amd64 go build -v -ldflags '-s -w' -o binaries/envp-windows-amd64
+env GOOS=windows GOARCH=386   go build -v -ldflags '-s -w' -o binaries/envp-windows-i386
+env GOOS=darwin  GOARCH=amd64 go build -v -ldflags '-s -w' -o binaries/envp-macos-amd64
+env GOOS=darwin  GOARCH=386   go build -v -ldflags '-s -w' -o binaries/envp-macos-i386
+
+if [[ "$MACOS_DEVELOPER_ID" ]]; then
+  codesign -f -s "$MACOS_DEVELOPER_ID" binaries/envp-macos-amd64
+  codesign -f -s "$MACOS_DEVELOPER_ID" binaries/envp-macos-i386
+fi
