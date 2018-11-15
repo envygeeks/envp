@@ -5,72 +5,88 @@
 package main
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
-	"text/template"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFuncTrimStr(t *testing.T) {
-	tt, _ := template.New("Test").Parse("")
+func createTemplate(data string) *Template {
+	a := NewFlags().Parse()
+	t1, _ := ioutil.TempFile("", "")
+	t2, _ := ioutil.TempFile("", "")
+	defer t1.Close()
+	defer t2.Close()
+
+	a["file"], a["output"] = t1.Name(), t2.Name()
+	t := NewTemplate(&a)
+	if data != "" {
+		t.template.Parse(data)
+	}
+
+	return t
+}
+
+func TestTemplate__trimStr(t *testing.T) {
+	tt := createTemplate("")
 	for _, v := range [][3]interface{}{
 		{"", "    ", "strips a blank string"},
 		{"string", "  string", "it strips l whitespace"},
 		{"string", "string  ", "it strips r whitespace"},
 		{"string", "string\n", "it strips newlines"},
 	} {
-		actual := func_trimStr(tt)(v[1].(string))
+		actual := tt._trimStr(v[1].(string))
 		assert.Equal(t, v[0], actual, v[2])
 	}
 }
 
-func TestFuncTemplateExists(t *testing.T) {
-	tt, _ := template.New("Test").Parse("{{ define \"hello\" }}world{{ end }}")
+func TestTemplate__templateExists(t *testing.T) {
+	tt := createTemplate("{{ define \"hello\" }}world{{ end }}")
 	for _, v := range [][3]interface{}{
-		{true, "Test", "it's true for itself"},
+		{true, "envp", "it's true for itself"},
 		{true, "hello", "it's true even for define"},
 		{false, "", "it's false if blank"},
 	} {
-		actual := func_templateExists(tt)(v[1].(string))
+		actual := tt._templateExists(v[1].(string))
 		assert.Equal(t, v[0], actual, v[2])
 	}
 }
 
-func TestFuncEExists(t *testing.T) {
+func TestTemplate__eExists(t *testing.T) {
 	os.Setenv("BLANK", "")
-	tt, _ := template.New("Test").Parse("")
+	tt := createTemplate("")
 	for _, v := range [][3]interface{}{
 		{true, "HOME", "it's true if exists"},
 		{false, "UNKNOWN", "it's false if it doesn't exist"},
 		{true, "BLANK", "it's true if blank"},
 	} {
-		actual := func_eExists(tt)(v[1].(string))
+		actual := tt._eExists(v[1].(string))
 		assert.Equal(t, v[0], actual, v[2])
 	}
 }
 
-func TestFuncEStr(t *testing.T) {
+func TestTemplate__eStr(t *testing.T) {
 	os.Setenv("BLANK", "")
-	tt, _ := template.New("Test").Parse("")
+	tt := createTemplate("")
 	for _, v := range [][3]interface{}{
 		{"HOME", "it's a string if it exists"},
 		{"UNKNOWN", "it's a string if it doesn't exist"},
 		{"BLANK", "it's a string if it's blank"},
 	} {
-		actual := func_eStr(tt)(v[0].(string))
+		actual := tt._eStr(v[0].(string))
 		assert.IsType(t, "", actual, v[1])
 	}
 }
 
-func TestFuncEBool(t *testing.T) {
+func TestTemplate__eBool(t *testing.T) {
 	os.Setenv("TRUE_1", "1")
 	os.Setenv("TRUE_true", "true")
 	os.Setenv("FALSE_false", "false")
 	os.Setenv("FALSE_0", "0")
 	os.Setenv("BLANK", "")
 
-	tt, _ := template.New("Test").Parse("")
+	tt := createTemplate("")
 	for _, v := range [][3]interface{}{
 		{false, "FALSE_0", "it's false if it's 0"},
 		{true, "TRUE_true", "it's true if it's true"},
@@ -80,7 +96,7 @@ func TestFuncEBool(t *testing.T) {
 		{false, "BLANK", "it's false if it's blank"},
 		{true, "TRUE_1", "it's true if it's 1"},
 	} {
-		actual, _ := func_eBool(tt)(v[1].(string))
+		actual, _ := tt._eBool(v[1].(string))
 		assert.Equal(t, v[0], actual, v[2])
 	}
 }

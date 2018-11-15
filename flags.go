@@ -8,24 +8,36 @@ import (
 	"flag"
 )
 
-type BoolSlice []interface{}
+type BoolArg []interface{}
 type Args map[string]interface{}
-type StringSlice []interface{}
-type IntSlice []interface{}
-type ArgSlice []interface{}
+type StringArg []interface{}
+type Flags []interface{}
 
-var (
-	_cliFlags = ArgSlice{
-		StringSlice{"file", "", "the file, or dir"},
-		BoolSlice{"glob", false, "search, and use a dir full of *.gohtml"},
-		StringSlice{"output", "", "the file to write to"},
-		BoolSlice{"stdout", false, "print to stdout"},
+// Bool pulls a value as a boolean, this
+// supports *bool, and bool, because either
+// can be given depending on flags
+func (a Args) Bool(k string) bool {
+	o, ok := a[k].(bool)
+	if ok {
+		return o
 	}
-)
 
-func (a Args) Bool(k string) bool     { return bool(*a[k].(*bool)) }
-func (a Args) String(k string) string { return string(*a[k].(*string)) }
-func (a Args) Int(k string) int       { return int(*a[k].(*int)) }
+	v := *a[k].(*bool)
+	return bool(v)
+}
+
+// String pulls a value as a boolean, this
+// supports *bool, and bool, because either
+// can be given depending on flags
+func (a Args) String(k string) string {
+	o, ok := a[k].(string)
+	if ok {
+		return o
+	}
+
+	v := *a[k].(*string)
+	return string(v)
+}
 
 // IsEmpty Allows you to check if a value was
 // given, this means that it wasn't nil, that it
@@ -38,30 +50,55 @@ func (a Args) IsEmpty(k string) bool {
 	return false
 }
 
-// flags parses our flags, and returns them
+// NewFlags provides the default flags, and
+// allows somebody who wishes to use as a base to
+// add their own flags, by just append()
+func NewFlags() *Flags {
+	return &Flags{
+		StringArg{"file", "", "the file, or dir"},
+		BoolArg{"glob", false, "search, and use a dir full of *.gohtml"},
+		StringArg{"output", "", "the file to write to"},
+		BoolArg{"stdout", false, "print to stdout"},
+		BoolArg{"debug", false, "debug output"},
+	}
+}
+
+// Parse parses our flags, and returns them,
 // we just encapsulate this to make life a little
 // easier at the end of the day, when working.
-func flags() (a Args) {
-	a = make(map[string]interface{})
-	for _, v := range _cliFlags {
+func (f Flags) Parse() (a Args) {
+	a = make(Args)
+	for _, v := range f {
 		switch v.(type) {
-		case BoolSlice:
-			vv := v.(BoolSlice)
-			a[vv[0].(string)] = flag.Bool(vv[0].(string),
-				vv[1].(bool), vv[2].(string))
+		case BoolArg:
+			vv := v.(BoolArg)
+			k, def, dsc := vv[0].(string), vv[1].(bool), vv[2].(string)
+			if flag.Lookup(k) == nil {
+				a[k] = flag.Bool(k, def, dsc)
+				continue
+			}
 
-		case StringSlice:
-			vv := v.(StringSlice)
-			a[vv[0].(string)] = flag.String(vv[0].(string),
-				vv[1].(string), vv[2].(string))
+			fv := flag.Lookup(k).Value
+			ov := fv.(flag.Getter).Get()
+			a[k] = ov.(bool)
 
-		case IntSlice:
-			vv := v.(IntSlice)
-			a[vv[0].(string)] = flag.Int(vv[0].(string),
-				vv[1].(int), vv[2].(string))
+		case StringArg:
+			vv := v.(StringArg)
+			k, def, dsc := vv[0].(string), vv[1].(string), vv[2].(string)
+			if flag.Lookup(k) == nil {
+				a[k] = flag.String(k, def, dsc)
+				continue
+			}
+
+			fv := flag.Lookup(k).Value
+			ov := fv.(flag.Getter).Get()
+			a[k] = ov.(string)
 		}
 	}
 
-	flag.Parse()
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+
 	return
 }

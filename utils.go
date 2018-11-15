@@ -5,9 +5,10 @@
 package main
 
 import (
-	"log"
 	"os"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // expand expands a path just throwing the error
@@ -16,7 +17,7 @@ import (
 func expand(s string) string {
 	f, err := filepath.Abs(s)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
 
 	return f

@@ -9,80 +9,70 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	log "github.com/sirupsen/logrus"
 )
 
-type BoolFunc func(s string) bool
-type BoolFuncWithError func(s string) (bool, error)
-type StringFuncWithError func(s string) (string, error)
-type IntFuncWithError func(s string) (int, error)
-type StringFunc func(s string) string
-type IntFunc func(s string) int
-
 // func_trimStr trims a string for you... obviously
-func func_trimStr(t *template.Template) StringFunc {
-	return func(s string) string {
-		return strings.TrimSpace(s)
-	}
+func (t *Template) _trimStr(s string) string {
+	return strings.TrimSpace(s)
 }
 
 // func_templateExists allows you to check if a
 // template exists inside of the templates, this also
 // works for context based {{ define "name" }}.
-func func_templateExists(t *template.Template) BoolFunc {
-	return func(s string) bool {
-		if tt := t.Lookup(s); tt != nil {
-			return true
-		}
-
-		return false
+func (t *Template) _templateExists(s string) bool {
+	log.Debugf("looking for template %s", s)
+	if tt := t.template.Lookup(s); tt != nil {
+		return true
 	}
+
+	return false
 }
 
 // func_eExists allows you to check if a var exists
 // in your current environment, we do not alter it so
 // make sure you use FULLCAP if necessary.
-func func_eExists(t *template.Template) BoolFunc {
-	return func(s string) bool {
-		_, ok := os.LookupEnv(s)
-		return ok
-	}
+func (t *Template) _eExists(s string) bool {
+	_, ok := os.LookupEnv(s)
+	log.Debugf("checked if env %s exists", s)
+	return ok
 }
 
 // func_eStr allows you to pull out a string env var
-func func_eStr(t *template.Template) StringFunc {
-	return func(s string) string {
-		if v, ok := os.LookupEnv(s); ok {
-			return v
-		}
-
-		return ""
+func (t *Template) _eStr(s string) string {
+	if v, ok := os.LookupEnv(s); ok {
+		return v
 	}
+
+	return ""
 }
 
 // func_eBool allows you to pull out a env var as a
 // bool, following the same rules as strconv.ParseBool
 // where 1, true are true, and all else is false
-func func_eBool(t *template.Template) BoolFuncWithError {
-	return func(s string) (bool, error) {
-		if v, ok := os.LookupEnv(s); ok {
-			vv, err := strconv.ParseBool(v)
-			if err != nil {
-				return false, err
-			}
-
-			return vv, nil
+func (t *Template) _eBool(s string) (bool, error) {
+	if v, ok := os.LookupEnv(s); ok {
+		vv, err := strconv.ParseBool(v)
+		if err != nil {
+			return false, err
 		}
 
-		return false, nil
+		return vv, nil
 	}
+
+	return false, nil
 }
 
-func funcs(t *template.Template) template.FuncMap {
-	return template.FuncMap{
-		"eBool":          func_eBool(t),
-		"templateExists": func_templateExists(t),
-		"eExists":        func_eExists(t),
-		"trimStr":        func_trimStr(t),
-		"eStr":           func_eStr(t),
-	}
+// setupFuncs attaches the funcs to the template
+func (t *Template) addFuncs() *Template {
+	t.template.Funcs(template.FuncMap{
+		"eBool":          t._eBool,
+		"templateExists": t._templateExists,
+		"eExists":        t._eExists,
+		"trimStr":        t._trimStr,
+		"eStr":           t._eStr,
+	})
+
+	return t
 }
