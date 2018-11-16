@@ -48,8 +48,3 @@ site/
 # Yarn
 # --
 yarn.lock
-
-# --
-# Go
-# --
-/binaries

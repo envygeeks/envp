@@ -1,0 +1,21 @@
+#!/bin/bash
+# Copyright: 2017 - 2018 - MIT License
+# Source: https://github.com/envygeeks/devf
+# Author: Jordon Bedwell
+[ "$DEBUG" = "true" ] && set -x
+set -e
+
+f=script/script.d/report
+[ "$SKIP_SCRIPTD" != "true" ] && [ -x $f ] && exec $f "$@"
+if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS" = "true" ]; then
+  if [ "$1" = "before" ]; then
+    url=https://codeclimate.com/downloads/test-reporter
+    url=$url/test-reporter-latest-linux-amd64
+    curl -sL $url -o ./cctr
+    chmod +x ./cctr  ./cctr \
+      before-build
+  else
+    ./cctr after-build --exit-code \
+      $TRAVIS_TEST_RESULT
+  fi
+fi

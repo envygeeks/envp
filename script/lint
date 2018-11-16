@@ -1,0 +1,7 @@
+#!/bin/bash
+
+env GO111MODULE=off go get -u github.com/alecthomas/gometalinter
+gometalinter --vendor --disable-all --enable=vetshadow \
+  --enable=golint --enable=ineffassign --enable=goconst --enable=gocyclo \
+  --enable=gochecknoglobals --enable=gochecknoglobals \
+  --enable=deadcode --tests .

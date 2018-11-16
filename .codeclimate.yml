@@ -1,0 +1,5 @@
+version: "2"
+plugins:
+  govet:  { enabled: true }
+  golint: { enabled: true }
+  gofmt:  { enabled: true }

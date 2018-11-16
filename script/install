@@ -1,0 +1,11 @@
+#!/bin/bash
+# Copyright: 2017 - 2018 - MIT License
+# Source: https://github.com/envygeeks/devf
+# Author: Jordon Bedwell
+[ "$DEBUG" = "true" ] && set -x
+set -e
+
+if [[ -f "go.mod" ]] && [[ -f "go.sum" ]]; then
+  go mod download
+  go mod verify
+fi
