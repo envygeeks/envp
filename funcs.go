@@ -14,7 +14,7 @@ import (
 )
 
 // func_trimStr trims a string for you... obviously
-func (t *Template) _trimStr(s string) string {
+func (t *Template) _trim(s string) string {
 	return strings.TrimSpace(s)
 }
 
@@ -33,14 +33,14 @@ func (t *Template) _templateExists(s string) bool {
 // func_eExists allows you to check if a var exists
 // in your current environment, we do not alter it so
 // make sure you use FULLCAP if necessary.
-func (t *Template) _eExists(s string) bool {
+func (t *Template) _envExists(s string) bool {
 	_, ok := os.LookupEnv(s)
 	log.Debugf("checked if env %s exists", s)
 	return ok
 }
 
 // func_eStr allows you to pull out a string env var
-func (t *Template) _eStr(s string) string {
+func (t *Template) _env(s string) string {
 	if v, ok := os.LookupEnv(s); ok {
 		return v
 	}
@@ -51,7 +51,7 @@ func (t *Template) _eStr(s string) string {
 // func_eBool allows you to pull out a env var as a
 // bool, following the same rules as strconv.ParseBool
 // where 1, true are true, and all else is false
-func (t *Template) _eBool(s string) bool {
+func (t *Template) _boolEnv(s string) bool {
 	if v, ok := os.LookupEnv(s); ok {
 		vv, err := strconv.ParseBool(v)
 		if err != nil {
@@ -68,11 +68,11 @@ func (t *Template) _eBool(s string) bool {
 // setupFuncs attaches the funcs to the template
 func (t *Template) addFuncs() *Template {
 	t.template.Funcs(template.FuncMap{
-		"eBool":          t._eBool,
+		"boolEnv":        t._boolEnv,
 		"templateExists": t._templateExists,
-		"eExists":        t._eExists,
-		"trimStr":        t._trimStr,
-		"eStr":           t._eStr,
+		"envExists":      t._envExists,
+		"trim":           t._trim,
+		"env":            t._env,
 	})
 
 	return t

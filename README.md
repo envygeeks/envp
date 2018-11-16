@@ -19,11 +19,11 @@ Usage of envp:
 
 ## Helpers
 
-* `eBool` - Pull an env var as a bool: 1/true, 0/false
-* `trimStr` - Trim a string of left, and right whitespace
+* `trim` - Trim a string of left, and right whitespace
+* `boolEnv` - Pull an env var as a bool: 1/true, 0/false
 * `templateExists` - Check if a template exists
-* `eExists` - Check if an env var exists
-* `eStr` - Pull an env var as a string
+* `envExists` - Check if an env var exists
+* `env` - Pull an env var as a string
 
 ## An Example
 

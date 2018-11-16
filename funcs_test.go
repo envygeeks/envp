@@ -28,7 +28,7 @@ func createTemplate(data string) *Template {
 	return t
 }
 
-func TestTemplate__trimStr(t *testing.T) {
+func TestTemplate__trim(t *testing.T) {
 	tt := createTemplate("")
 	for _, v := range [][3]interface{}{
 		{"", "    ", "strips a blank string"},
@@ -36,7 +36,7 @@ func TestTemplate__trimStr(t *testing.T) {
 		{"string", "string  ", "it strips r whitespace"},
 		{"string", "string\n", "it strips newlines"},
 	} {
-		actual := tt._trimStr(v[1].(string))
+		actual := tt._trim(v[1].(string))
 		assert.Equal(t, v[0], actual, v[2])
 	}
 }
@@ -53,7 +53,7 @@ func TestTemplate__templateExists(t *testing.T) {
 	}
 }
 
-func TestTemplate__eExists(t *testing.T) {
+func TestTemplate__envExists(t *testing.T) {
 	os.Setenv("BLANK", "")
 	tt := createTemplate("")
 	for _, v := range [][3]interface{}{
@@ -61,12 +61,12 @@ func TestTemplate__eExists(t *testing.T) {
 		{false, "UNKNOWN", "it's false if it doesn't exist"},
 		{true, "BLANK", "it's true if blank"},
 	} {
-		actual := tt._eExists(v[1].(string))
+		actual := tt._envExists(v[1].(string))
 		assert.Equal(t, v[0], actual, v[2])
 	}
 }
 
-func TestTemplate__eStr(t *testing.T) {
+func TestTemplate__env(t *testing.T) {
 	os.Setenv("BLANK", "")
 	tt := createTemplate("")
 	for _, v := range [][3]interface{}{
@@ -74,12 +74,12 @@ func TestTemplate__eStr(t *testing.T) {
 		{"UNKNOWN", "it's a string if it doesn't exist"},
 		{"BLANK", "it's a string if it's blank"},
 	} {
-		actual := tt._eStr(v[0].(string))
+		actual := tt._env(v[0].(string))
 		assert.IsType(t, "", actual, v[1])
 	}
 }
 
-func TestTemplate__eBool(t *testing.T) {
+func TestTemplate__boolEnv(t *testing.T) {
 	os.Setenv("TRUE_1", "1")
 	os.Setenv("TRUE_true", "true")
 	os.Setenv("FALSE_false", "false")
@@ -96,7 +96,7 @@ func TestTemplate__eBool(t *testing.T) {
 		{false, "BLANK", "it's false if it's blank"},
 		{true, "TRUE_1", "it's true if it's 1"},
 	} {
-		a := tt._eBool(v[1].(string))
+		a := tt._boolEnv(v[1].(string))
 		assert.Equal(t, v[0], a, v[2])
 	}
 }
