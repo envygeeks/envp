@@ -5,27 +5,26 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func createTemplate(data string) *Template {
-	a := NewFlags().Parse()
-	t1, _ := ioutil.TempFile("", "")
-	t2, _ := ioutil.TempFile("", "")
-	defer t1.Close()
-	defer t2.Close()
+func TestTemplate__reindent(t *testing.T) {
+	s, e := "\n\n\t1\n\t  2\n\t3", "1\n  2\n3"
+	tt := createTemplate("")
+	actual := tt._reindent(s)
+	assert.Equal(t, e, actual,
+		"it reindents")
+}
 
-	a["file"], a["output"] = t1.Name(), t2.Name()
-	t := NewTemplate(&a)
-	if data != "" {
-		t.template.Parse(data)
-	}
-
-	return t
+func TestTemplate__trimEmpty(t *testing.T) {
+	s, e := "\n\n\n\n1\r\n\r\n", "1"
+	tt := createTemplate("")
+	actual := tt._trimEdges(s)
+	assert.Equal(t, e, actual,
+		"it strips")
 }
 
 func TestTemplate__space(t *testing.T) {

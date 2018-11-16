@@ -5,13 +5,46 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
 
 	log "github.com/sirupsen/logrus"
 )
+
+// _reIndent takes a string, and strips the
+// indention to the edge, like Rails #strip_heredoc
+// or Ruby std <<~, it also strips blank lines on
+// the top and on the bottom, for swift alignment
+func (t *Template) _reindent(s string) string {
+	s, indent := t._trimEdges(s), -1
+
+	re := regexp.MustCompile(`(?m)^[ \t]*`)
+	for _, v := range re.FindAllString(s, -1) {
+		if l := len(v); indent == -1 || l < indent {
+			indent = l
+		}
+	}
+
+	if indent > -1 {
+		rs := `(?m)^[ \t]{%d}`
+		re := regexp.MustCompile(fmt.Sprintf(rs, indent))
+		s = re.ReplaceAllString(s, "")
+	}
+
+	return s
+}
+
+// _trimEmptyLines trims empty lines on the
+// top and on the bottom of a string so that you
+// can do something close to Ruby's <<~
+func (t *Template) _trimEdges(s string) string {
+	re := regexp.MustCompile(`(?m)\A[ \t]*$[\r\n]*|[\r\n]+[ \t]*\z`)
+	return re.ReplaceAllString(s, "")
+}
 
 // _space adds a space to the beginning of
 // a string this way you can {{- -}} compress
@@ -71,8 +104,10 @@ func (t *Template) _boolEnv(s string) bool {
 // addFuncs attaches the funcs to the template
 func (t *Template) addFuncs() *Template {
 	t.template.Funcs(template.FuncMap{
-		"boolEnv":        t._boolEnv,
 		"split":          strings.Split,
+		"boolEnv":        t._boolEnv,
+		"reindent":       t._reindent,
+		"trimEdges":      t._trimEdges,
 		"templateExists": t._templateExists,
 		"envExists":      t._envExists,
 		"trim":           strings.Trim,
