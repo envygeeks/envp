@@ -30,11 +30,11 @@ Usage of envp:
 
 ```gohtml
 {{- define "hostnames" -}}
-  {{- if eq (eStr "GHOST_ENV") "development" -}}
+  {{- if eq (env "GHOST_ENV") "development" -}}
     http://localhost
   {{- else -}}
-    {{ $g := eStr "GHOST_HOSTNAME" }}
-    {{- if eBool "CADDY_SSL" -}}
+    {{ $g := env "GHOST_HOSTNAME" }}
+    {{- if boolEnv "CADDY_SSL" -}}
       http://{{$g}} https://{{$g}}
     {{- else -}}
       http://{{$g}}
@@ -42,11 +42,11 @@ Usage of envp:
   {{- end -}}
 {{- end -}}
 {{- define "tls" -}}
-  {{- if and (ne (eStr "GHOST_ENV") "development") (eBool "CADDY_SSL") -}}
+  {{- if and (ne (env "GHOST_ENV") "development") (boolEnv "CADDY_SSL") -}}
     {{- if templateExists "ssl.gohtml" -}}
       {{ template "ssl.gohtml" }}
     {{- else -}}
-      tls {{ eStr "CADDY_SSL_EMAIL" }}
+      tls {{ env "CADDY_SSL_EMAIL" }}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -56,8 +56,8 @@ Usage of envp:
 root /srv/caddy/ghost
 ext .html .htm
 
-{{ if and (eExists "GHOST_PORT") (ne (eStr "GHOST_PORT") "") }}
-proxy localhost:{{ eStr "GHOST_PORT" }} {
+{{ if and (envExists "GHOST_PORT") (ne (env "GHOST_PORT") "") }}
+proxy localhost:{{ env "GHOST_PORT" }} {
   transparent
   websocket
 }
