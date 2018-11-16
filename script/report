@@ -14,6 +14,8 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS" = "true" ]; then
     curl -sL $url -o cctr && chmod +x cctr
     ./cctr before-build
   else
+    name="$(cat go.mod | grep module | sed 's/module //')"
+    cat t.out | sed "s^${name}/^^" > c.out
     ./cctr after-build --exit-code \
       $TRAVIS_TEST_RESULT
   fi

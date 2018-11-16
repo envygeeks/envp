@@ -1,4 +1,4 @@
 #!/bin/bash
 
-go test -short -coverprofile=cover.out \
+go test -short -coverprofile=t.out \
   -cover -v
