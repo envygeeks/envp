@@ -34,7 +34,7 @@ func TestTemplate__space(t *testing.T) {
 		{" 1", "   1 ", "it works for strings with space"},
 		{" 1", "1\n", "it works with newline"},
 	} {
-		actual := tt._space(v[1].(string))
+		actual := tt._space(v[1].(string), 1)
 		assert.Equal(t, v[0], actual, v[2])
 	}
 }

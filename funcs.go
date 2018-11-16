@@ -54,9 +54,10 @@ func (t *Template) _trimEdges(s string) string {
 // _space adds a space to the beginning of
 // a string this way you can {{- -}} compress
 // lines, and still have a space
-func (t *Template) _space(s string) string {
+func (t *Template) _space(s string, n int) string {
 	s = strings.TrimSpace(s)
-	return " " + s
+	space := strings.Repeat(" ", n)
+	return space + s
 }
 
 // _templateExists allows you to check if a
