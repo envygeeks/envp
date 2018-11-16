@@ -28,15 +28,14 @@ func createTemplate(data string) *Template {
 	return t
 }
 
-func TestTemplate__trim(t *testing.T) {
+func TestTemplate__space(t *testing.T) {
 	tt := createTemplate("")
 	for _, v := range [][3]interface{}{
-		{"", "    ", "strips a blank string"},
-		{"string", "  string", "it strips l whitespace"},
-		{"string", "string  ", "it strips r whitespace"},
-		{"string", "string\n", "it strips newlines"},
+		{" 1", "1", "it works for simple strings"},
+		{" 1", "   1 ", "it works for strings with space"},
+		{" 1", "1\n", "it works with newline"},
 	} {
-		actual := tt._trim(v[1].(string))
+		actual := tt._space(v[1].(string))
 		assert.Equal(t, v[0], actual, v[2])
 	}
 }

@@ -13,9 +13,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// _trim trims a string for you... obviously
-func (t *Template) _trim(s string) string {
-	return strings.TrimSpace(s)
+// _space adds a space to the beginning of
+// a string this way you can {{- -}} compress
+// lines, and still have a space
+func (t *Template) _space(s string) string {
+	s = strings.TrimSpace(s)
+	return " " + s
 }
 
 // _templateExists allows you to check if a
@@ -69,9 +72,10 @@ func (t *Template) _boolEnv(s string) bool {
 func (t *Template) addFuncs() *Template {
 	t.template.Funcs(template.FuncMap{
 		"boolEnv":        t._boolEnv,
+		"split":          strings.Split,
 		"templateExists": t._templateExists,
 		"envExists":      t._envExists,
-		"trim":           t._trim,
+		"trim":           strings.Trim,
 		"env":            t._env,
 	})
 
