@@ -51,17 +51,18 @@ func (t *Template) _eStr(s string) string {
 // func_eBool allows you to pull out a env var as a
 // bool, following the same rules as strconv.ParseBool
 // where 1, true are true, and all else is false
-func (t *Template) _eBool(s string) (bool, error) {
+func (t *Template) _eBool(s string) bool {
 	if v, ok := os.LookupEnv(s); ok {
 		vv, err := strconv.ParseBool(v)
 		if err != nil {
-			return false, err
+			log.Warn(err)
+			return false
 		}
 
-		return vv, nil
+		return vv
 	}
 
-	return false, nil
+	return false
 }
 
 // setupFuncs attaches the funcs to the template

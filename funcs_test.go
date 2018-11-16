@@ -96,7 +96,7 @@ func TestTemplate__eBool(t *testing.T) {
 		{false, "BLANK", "it's false if it's blank"},
 		{true, "TRUE_1", "it's true if it's 1"},
 	} {
-		actual, _ := tt._eBool(v[1].(string))
-		assert.Equal(t, v[0], actual, v[2])
+		a := tt._eBool(v[1].(string))
+		assert.Equal(t, v[0], a, v[2])
 	}
 }
