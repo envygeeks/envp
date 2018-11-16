@@ -15,14 +15,19 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	rrRE = `(?m)^[ \t]{%d}`
+	teRE = `(?m)\A[ \t]*$[\r\n]*|[\r\n]+[ \t]*\z`
+	rdRE = `(?m)^[ \t]*`
+)
+
 // _reIndent takes a string, and strips the
 // indention to the edge, like Rails #strip_heredoc
 // or Ruby std <<~, it also strips blank lines on
 // the top and on the bottom, for swift alignment
 func (t *Template) _reindent(s string) string {
 	s, indent := t._trimEdges(s), -1
-
-	re := regexp.MustCompile(`(?m)^[ \t]*`)
+	re := regexp.MustCompile(rdRE)
 	for _, v := range re.FindAllString(s, -1) {
 		if l := len(v); indent == -1 || l < indent {
 			indent = l
@@ -30,8 +35,7 @@ func (t *Template) _reindent(s string) string {
 	}
 
 	if indent > -1 {
-		rs := `(?m)^[ \t]{%d}`
-		re := regexp.MustCompile(fmt.Sprintf(rs, indent))
+		re := regexp.MustCompile(fmt.Sprintf(rrRE, indent))
 		s = re.ReplaceAllString(s, "")
 	}
 
@@ -42,8 +46,9 @@ func (t *Template) _reindent(s string) string {
 // top and on the bottom of a string so that you
 // can do something close to Ruby's <<~
 func (t *Template) _trimEdges(s string) string {
-	re := regexp.MustCompile(`(?m)\A[ \t]*$[\r\n]*|[\r\n]+[ \t]*\z`)
-	return re.ReplaceAllString(s, "")
+	re := regexp.MustCompile(teRE)
+	return re.ReplaceAllString(
+		s, "")
 }
 
 // _space adds a space to the beginning of
