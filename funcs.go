@@ -13,12 +13,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// func_trimStr trims a string for you... obviously
+// _trim trims a string for you... obviously
 func (t *Template) _trim(s string) string {
 	return strings.TrimSpace(s)
 }
 
-// func_templateExists allows you to check if a
+// _templateExists allows you to check if a
 // template exists inside of the templates, this also
 // works for context based {{ define "name" }}.
 func (t *Template) _templateExists(s string) bool {
@@ -30,7 +30,7 @@ func (t *Template) _templateExists(s string) bool {
 	return false
 }
 
-// func_eExists allows you to check if a var exists
+// _envExists allows you to check if a var exists
 // in your current environment, we do not alter it so
 // make sure you use FULLCAP if necessary.
 func (t *Template) _envExists(s string) bool {
@@ -39,7 +39,7 @@ func (t *Template) _envExists(s string) bool {
 	return ok
 }
 
-// func_eStr allows you to pull out a string env var
+// _env allows you to pull out a string env var
 func (t *Template) _env(s string) string {
 	if v, ok := os.LookupEnv(s); ok {
 		return v
@@ -48,7 +48,7 @@ func (t *Template) _env(s string) string {
 	return ""
 }
 
-// func_eBool allows you to pull out a env var as a
+// _boolEnv allows you to pull out a env var as a
 // bool, following the same rules as strconv.ParseBool
 // where 1, true are true, and all else is false
 func (t *Template) _boolEnv(s string) bool {
@@ -65,7 +65,7 @@ func (t *Template) _boolEnv(s string) bool {
 	return false
 }
 
-// setupFuncs attaches the funcs to the template
+// addFuncs attaches the funcs to the template
 func (t *Template) addFuncs() *Template {
 	t.template.Funcs(template.FuncMap{
 		"boolEnv":        t._boolEnv,
