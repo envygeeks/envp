@@ -6,19 +6,19 @@
 # --
 # Ruby
 # --
-vendor/
-coverage/
-Gemfile.lock
+/vendor/
+/coverage/
+/Gemfile.lock
 spec/fixture/site/
 spec/fixture/result/
 spec/fixture/out/
-.bundle/
-*.gem
+/.bundle/
+/*.gem
 
 # --
 # CodeClimate
 # --
-cctr
+/cctr
 
 # --
 # Jekyll
@@ -47,9 +47,17 @@ site/
 # --
 # Yarn
 # --
-yarn.lock
+/yarn.lock
 
 # --
 # Go
 # --
-/cover.out
+/c.out
+/t.out
+
+# --
+# Other
+# --
+/build
+/binaries
+/priv
