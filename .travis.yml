@@ -1,0 +1,35 @@
+language: go
+after_success: script/report
+before_install: ["go mod download"]
+before_script: script/report before
+script: script/test
+sudo: false
+env:
+  global:
+    - GO111MODULE=auto
+    - GO15VENDOREXPERIMENT=1
+    - secure: "\
+      mc5gZ//X2wblY6a6w3xlKtGpZql8U+C4k0vaddo0eYPmlUVLprftdJmhLpFeDfPQmCXa9eax\
+      h0oz/u//Y4ouUnqmnfEQKv0eGUIbFRWifGawjXpIv8pWDmfF1F+cfhp8iBTIZUDWOCwlZB3U\
+      BsNkmQHqjJKuu/EORbsJm7RNUO40CVKalY0oUutyMnM80cdBrULWFgjfCkb3mjbKPDaNw9bd\
+      Gh6gGZTu0dJAfbNOUH2kgcOYbSTtz12z56N6p3exRb7qy+qAxbFAr2ytHQauiWKKTJbsE22f\
+      tgUN/pD7A5SPWfWsBLp6ZbzqXbqQ6z1Fex1mAT84emSFYGpetOmDYbMHH5Wte0+lSMXSHr4/\
+      hbyNaLeLXeYhXWhrlUg0kJFXtGbhyAAM9jKfhY3Uv0BsnGv70c4YqD4WeoxpXjAbl1hNh9i1\
+      2MzK1cfwfJ1LTMS4sIfzJOLS/WIUWkOQlywVrtc4ktHc2Hg4L907gdiTvs7+gI3X2lOfSgF2\
+      FIOzm2P0l5Sb8gKTsSYgcgF3TA7NGnAfhaLfEHe8jp5tnIFpMJf3iODRW4WwNhvMs4vEKj5M\
+      zOkwPFlOIGmr3zAOiQD40esnVXFM9HgHYXW85Rsyiz58JbbW7l4JfZosKwStte2nFpKtLHbW\
+      IAOgh/8R9PylrkEisAWakwi5UP3nXNY+uno=\
+    "
+go:
+  - "1.11"
+matrix:
+  fast_finish: true
+notifications:
+  email:
+    recipients:
+      - jordon@envygeeks.io
+    on_success: change
+    on_failure: change
+branches:
+  only:
+    - master
