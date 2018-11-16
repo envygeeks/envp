@@ -14,6 +14,7 @@ Usage of envp:
   -file string the file, or dir
   -glob search, and use a dir full of *.gohtml
   -output string the file to write to
+  -debug full verbose logging
   -stdout print to stdout
 ```
 
