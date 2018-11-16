@@ -11,9 +11,8 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS" = "true" ]; then
   if [ "$1" = "before" ]; then
     url=https://codeclimate.com/downloads/test-reporter
     url=$url/test-reporter-latest-linux-amd64
-    curl -sL $url -o ./cctr
-    chmod +x ./cctr  ./cctr \
-      before-build
+    curl -sL $url -o cctr && chmod +x cctr
+    ./cctr before-build
   else
     ./cctr after-build --exit-code \
       $TRAVIS_TEST_RESULT
