@@ -21,6 +21,30 @@ const (
 	rdRE = `(?m)^[ \t]*`
 )
 
+// _templateString allows you to pull a template
+// and output it as a string into a func or whatever.
+func (t *Template) _templateString(s string) string {
+	if tt := t.template.Lookup(s); tt != nil {
+		var ss strings.Builder
+		if err := tt.Execute(&ss, t); err != nil {
+			log.Fatalln(err)
+		}
+
+		return ss.String()
+	}
+
+	// Bad template given.
+	log.Fatalf("Unable to find %s", s)
+	return ""
+}
+
+// _reindentedTemplate reindents, and outs a string
+func (t *Template) _reindentedTemplate(s string) string {
+	s = t._templateString(s)
+	s = t._reindent(s)
+	return s
+}
+
 // _reIndent takes a string, and strips the
 // indention to the edge, like Rails #strip_heredoc
 // or Ruby std <<~, it also strips blank lines on
@@ -110,14 +134,16 @@ func (t *Template) _boolEnv(s string) bool {
 // addFuncs attaches the funcs to the template
 func (t *Template) addFuncs() *Template {
 	t.template.Funcs(template.FuncMap{
-		"split":          strings.Split,
-		"boolEnv":        t._boolEnv,
-		"reindent":       t._reindent,
-		"trimEdges":      t._trimEdges,
-		"templateExists": t._templateExists,
-		"envExists":      t._envExists,
-		"trim":           strings.Trim,
-		"env":            t._env,
+		"split":              strings.Split,
+		"boolEnv":            t._boolEnv,
+		"reindent":           t._reindent,
+		"trimEdges":          t._trimEdges,
+		"templateString":     t._templateString,
+		"reindentedTemplate": t._reindentedTemplate,
+		"templateExists":     t._templateExists,
+		"envExists":          t._envExists,
+		"trim":               strings.Trim,
+		"env":                t._env,
 	})
 
 	return t

@@ -51,6 +51,26 @@ func TestTemplate__templateExists(t *testing.T) {
 	}
 }
 
+func TestTemplate__templateString(t *testing.T) {
+	tt := createTemplate("{{ define \"hello\" }}world{{ end }}")
+	for _, v := range [][3]interface{}{
+		{"world", "hello", "it's world"},
+	} {
+		actual := tt._templateString(v[1].(string))
+		assert.Equal(t, v[0], actual, v[2])
+	}
+}
+
+func TestTemplate__reindentedTemplate(t *testing.T) {
+	tt := createTemplate("{{ define \"hello\" }}\n\n\t1\n\t  2\n\t3{{ end }}")
+	for _, v := range [][3]interface{}{
+		{"1\n  2\n3", "hello", "it's reindented"},
+	} {
+		actual := tt._reindentedTemplate(v[1].(string))
+		assert.Equal(t, v[0], actual, v[2])
+	}
+}
+
 func TestTemplate__envExists(t *testing.T) {
 	os.Setenv("BLANK", "")
 	tt := createTemplate("")

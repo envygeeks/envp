@@ -23,7 +23,9 @@ Usage of envp:
 * `reindent` - Reindent like `<<~` in Ruby
 * `trimEdges` - Trim "\n" or "\r\n" from the edges
 * `trim` - Trim a string of left, and right whitespace
+* `reindentedTemplate` - pull a template, and reindent it
 * `boolEnv` - Pull an env var as a bool: 1/true, 0/false
+* `templateString` - fetch a template to a string
 * `templateExists` - Check if a template exists
 * `envExists` - Check if an env var exists
 * `env` - Pull an env var as a string
