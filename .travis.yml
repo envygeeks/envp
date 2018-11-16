@@ -6,7 +6,7 @@ script: script/test
 sudo: false
 env:
   global:
-    - GO111MODULE=auto
+    - GO111MODULE=on
     - GO15VENDOREXPERIMENT=1
     - secure: "\
       mc5gZ//X2wblY6a6w3xlKtGpZql8U+C4k0vaddo0eYPmlUVLprftdJmhLpFeDfPQmCXa9eax\
