@@ -16,6 +16,7 @@ import (
 )
 
 const (
+	elRE = `(?m)^[ \t]+$`
 	rrRE = `(?m)^[ \t]{%d}`
 	teRE = `(?m)\A[ \t]*$[\r\n]*|[\r\n]+[ \t]*\z`
 	rdRE = `(?m)^[ \t]+`
@@ -40,9 +41,8 @@ func (t *Template) _templateString(s string) string {
 
 // _reindentedTemplate reindents, and outs a string
 func (t *Template) _reindentedTemplate(s string) string {
-	s = t._templateString(s)
-	s = t._reindent(s)
-	return s
+	return t._reindent(t._trimEmpty(t._templateString(s)))
+	// return t._reindent(t._templateString(s))
 }
 
 // _reIndent takes a string, and strips the
@@ -64,6 +64,14 @@ func (t *Template) _reindent(s string) string {
 	}
 
 	return s
+}
+
+// _stripEmpty strips empty lines of any
+// space that is pushed through by templating
+// allowing you to work with simply \n
+func (t *Template) _trimEmpty(s string) string {
+	re := regexp.MustCompile(elRE)
+	return re.ReplaceAllString(s, "")
 }
 
 // _trimEmptyLines trims empty lines on the

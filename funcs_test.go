@@ -18,13 +18,12 @@ func TestTemplate__reindent(t *testing.T) {
 	assert.Equal(t, e, actual,
 		"it reindents")
 }
-
 func TestTemplate__trimEmpty(t *testing.T) {
-	s, e := "\n\n\n\n1\r\n\r\n", "1"
+	s, e := "1\n        \n2", "1\n\n2"
 	tt := createTemplate("")
-	actual := tt._trimEdges(s)
+	actual := tt._trimEmpty(s)
 	assert.Equal(t, e, actual,
-		"it strips")
+		"it trims")
 }
 
 func TestTemplate__space(t *testing.T) {

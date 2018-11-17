@@ -24,6 +24,7 @@ EnvP is a simple CLI util that passes your file through Go-Template with your en
 | trimEdges | Trim "\n" or "\r\n" from the edges |
 | trim | Trim a string of left, and right whitespace |
 | reindentedTemplate | Pull a template, and reindent it |
+| trimEmpty | Trims empty lines with nothing but space to only `^$\n` |
 | boolEnv | Pull an env var as a bool: 1/true, 0/false |
 | templateString | fetch a template to a string |
 | templateExists | Check if a template exists |
