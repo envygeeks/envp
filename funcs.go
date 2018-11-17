@@ -18,7 +18,7 @@ import (
 const (
 	rrRE = `(?m)^[ \t]{%d}`
 	teRE = `(?m)\A[ \t]*$[\r\n]*|[\r\n]+[ \t]*\z`
-	rdRE = `(?m)^[ \t]*`
+	rdRE = `(?m)^[ \t]+`
 )
 
 // _templateString allows you to pull a template
