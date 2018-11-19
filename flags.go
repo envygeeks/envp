@@ -1,54 +1,17 @@
 // Copyright 2018 Jordon Bedwell. All rights reserved.
 // Use of this source code is governed by the MIT license
 // that can be found in the LICENSE file.
-
 package main
 
 import (
 	"flag"
+
+	"github.com/envygeeks/envp/args"
 )
 
 type BoolArg []interface{}
-type Args map[string]interface{}
 type StringArg []interface{}
 type Flags []interface{}
-
-// Bool pulls a value as a boolean, this
-// supports *bool, and bool, because either
-// can be given depending on flags
-func (a Args) Bool(k string) bool {
-	o, ok := a[k].(bool)
-	if ok {
-		return o
-	}
-
-	v := *a[k].(*bool)
-	return bool(v)
-}
-
-// String pulls a value as a boolean, this
-// supports *bool, and bool, because either
-// can be given depending on flags
-func (a Args) String(k string) string {
-	o, ok := a[k].(string)
-	if ok {
-		return o
-	}
-
-	v := *a[k].(*string)
-	return string(v)
-}
-
-// IsEmpty Allows you to check if a value was
-// given, this means that it wasn't nil, that it
-// exists on the map, and that it's not empty.
-func (a Args) IsEmpty(k string) bool {
-	if v, ok := a[k]; !ok || v == nil || v == "" {
-		return true
-	}
-
-	return false
-}
 
 // NewFlags provides the default flags, and
 // allows somebody who wishes to use as a base to
@@ -66,8 +29,8 @@ func NewFlags() *Flags {
 // Parse parses our flags, and returns them,
 // we just encapsulate this to make life a little
 // easier at the end of the day, when working.
-func (f Flags) Parse() (a Args) {
-	a = make(Args)
+func (f Flags) Parse() (a args.Args) {
+	a = args.New()
 	for _, v := range f {
 		switch v.(type) {
 		case BoolArg:

@@ -1,4 +1,8 @@
-package main
+// Copyright 2018 Jordon Bedwell. All rights reserved.
+// Use of this source code is governed by the MIT license
+// that can be found in the LICENSE file.
+
+package template
 
 import (
 	"fmt"
@@ -8,6 +12,9 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/envygeeks/envp/args"
+	"github.com/envygeeks/envp/helpers"
+	"github.com/envygeeks/envp/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,30 +25,33 @@ type Template struct {
 	file      string
 	output    string
 	template  *template.Template
+	helpers   *helpers.Helpers
 	templates []string
 	stdout    bool
 	debug     bool
 	glob      bool
 }
 
-// NewTemplate creates a new template, and logs it
-// for the entire world to know if they really need to
+// New creates a new template, and logs it for
+// the entire world to know if they really need to
 // know what's going on for debugging purposes.
-func NewTemplate(a *Args) *Template {
-	log.Debug("creating new envp template")
-	return (&Template{
+func New(a *args.Args) *Template {
+	externalTemplate := template.New("envp")
+	t := (&Template{
 		debug:    a.Bool("debug"),
-		file:     expand(a.String("file")),
-		output:   expand(a.String("output")),
-		template: template.New("envp"),
+		helpers:  helpers.New(externalTemplate),
+		file:     utils.Expand(a.String("file")),
+		output:   utils.Expand(a.String("output")),
+		template: externalTemplate,
 		stdout:   a.Bool("stdout"),
 		glob:     a.Bool("glob"),
-	}).Verify().addFuncs()
+	}).verify()
+	return t
 }
 
 // Verify verifies the file exists.
-func (t *Template) Verify() *Template {
-	if !isExist(t.file) {
+func (t *Template) verify() *Template {
+	if !utils.IsExist(t.file) {
 		log.Fatalf("%s doesn't exist", t.file)
 	}
 

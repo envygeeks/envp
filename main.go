@@ -5,6 +5,7 @@
 package main
 
 import (
+	"github.com/envygeeks/envp/template"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,5 +19,5 @@ func main() {
 	}
 
 	log.SetLevel(l)
-	NewTemplate(&a).Run()
+	template.New(&a).Run()
 }
