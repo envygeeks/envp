@@ -18,6 +18,7 @@ func TestNewFlags(t *testing.T) {
 
 func TestFlags_Parse(t *testing.T) {
 	e := args.Args{}
+	NewFlags().Parse()
 	a := NewFlags().Parse()
 	assert.IsType(t, e, a)
 }
