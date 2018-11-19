@@ -60,12 +60,12 @@ func TestTemplate__templateString(t *testing.T) {
 	}
 }
 
-func TestTemplate__reindentedTemplate(t *testing.T) {
+func TestTemplate__indentedTemplate(t *testing.T) {
 	tt := createTemplate("{{ define \"hello\" }}\n\n\t1\n\t  2\n\t3{{ end }}")
 	for _, v := range [][3]interface{}{
 		{"1\n  2\n3", "hello", "it's reindented"},
 	} {
-		actual := tt._reindentedTemplate(v[1].(string))
+		actual := tt._indentedTemplate(v[1].(string))
 		assert.Equal(t, v[0], actual, v[2])
 	}
 }

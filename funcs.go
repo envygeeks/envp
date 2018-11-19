@@ -39,10 +39,15 @@ func (t *Template) _templateString(s string) string {
 	return ""
 }
 
+// _trimmed trims the templateString
+func (t *Template) _trimmedTemplate(s string) string {
+	return t._trimEmpty(t._trimEdges(t._templateString(s)))
+}
+
 // _reindentedTemplate reindents, and outs a string
-func (t *Template) _reindentedTemplate(s string) string {
-	return t._reindent(t._trimEmpty(t._templateString(s)))
-	// return t._reindent(t._templateString(s))
+func (t *Template) _indentedTemplate(s string) string {
+	s = t._trimmedTemplate(s)
+	return t._reindent(s)
 }
 
 // _reIndent takes a string, and strips the
@@ -142,16 +147,17 @@ func (t *Template) _boolEnv(s string) bool {
 // addFuncs attaches the funcs to the template
 func (t *Template) addFuncs() *Template {
 	t.template.Funcs(template.FuncMap{
-		"split":              strings.Split,
-		"boolEnv":            t._boolEnv,
-		"reindent":           t._reindent,
-		"trimEdges":          t._trimEdges,
-		"templateString":     t._templateString,
-		"reindentedTemplate": t._reindentedTemplate,
-		"templateExists":     t._templateExists,
-		"envExists":          t._envExists,
-		"trim":               strings.Trim,
-		"env":                t._env,
+		"split":            strings.Split,
+		"boolEnv":          t._boolEnv,
+		"reindent":         t._reindent,
+		"trimEdges":        t._trimEdges,
+		"templateString":   t._templateString,
+		"trimmedTemplate":  t._trimmedTemplate,
+		"indentedTemplate": t._indentedTemplate,
+		"templateExists":   t._templateExists,
+		"envExists":        t._envExists,
+		"trim":             strings.Trim,
+		"env":              t._env,
 	})
 
 	return t
