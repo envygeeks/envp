@@ -113,13 +113,14 @@ func (t *Template) _templateExists(s string) bool {
 // in your current environment, we do not alter it so
 // make sure you use FULLCAP if necessary.
 func (t *Template) _envExists(s string) bool {
+	s = strings.ToUpper(s)
 	_, ok := os.LookupEnv(s)
-	log.Debugf("checked if env %s exists", s)
 	return ok
 }
 
 // _env allows you to pull out a string env var
 func (t *Template) _env(s string) string {
+	s = strings.ToUpper(s)
 	if v, ok := os.LookupEnv(s); ok {
 		return v
 	}
@@ -131,6 +132,7 @@ func (t *Template) _env(s string) string {
 // bool, following the same rules as strconv.ParseBool
 // where 1, true are true, and all else is false
 func (t *Template) _boolEnv(s string) bool {
+	s = strings.ToUpper(s)
 	if v, ok := os.LookupEnv(s); ok {
 		vv, err := strconv.ParseBool(v)
 		if err != nil {

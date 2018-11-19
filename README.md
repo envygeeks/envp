@@ -34,13 +34,29 @@ EnvP is a simple CLI util that passes your file through Go-Template with your en
 
 ## An Example
 
+Given you did
+
+```bash
+export GHOST_PORT=8080
+export GHOST_ENV=production
+export CADDY_TLS_EMAIL=user@example.com
+export CADDY_TLS=true
+
+envp \
+  -prefix=ghost \
+  -file=ghost.gohtml \
+  -stdout
+```
+
+And `ghost.gohtml` was
+
 ```gohtml
 {{- define "hostnames" -}}
-  {{- if eq (env "GHOST_ENV") "development" -}}
+  {{- if eq (env "ghost_env") "development" -}}
     http://localhost
   {{- else -}}
-    {{ $g := env "GHOST_HOSTNAME" }}
-    {{- if boolEnv "CADDY_SSL" -}}
+    {{ $g := env "ghost_hostname" }}
+    {{- if boolEnv "caddy_tls" -}}
       http://{{$g}} https://{{$g}}
     {{- else -}}
       http://{{$g}}
@@ -48,12 +64,8 @@ EnvP is a simple CLI util that passes your file through Go-Template with your en
   {{- end -}}
 {{- end -}}
 {{- define "tls" -}}
-  {{- if and (ne (env "GHOST_ENV") "development") (boolEnv "CADDY_SSL") -}}
-    {{- if templateExists "ssl.gohtml" -}}
-      {{ template "ssl.gohtml" }}
-    {{- else -}}
-      tls {{ env "CADDY_SSL_EMAIL" }}
-    {{- end -}}
+  {{- if and (ne (env "ghost_env") "development") (boolEnv "caddy_tls") -}}
+    tls {{ env "caddy_tls_email" }}
   {{- end -}}
 {{- end -}}
 
@@ -62,26 +74,15 @@ EnvP is a simple CLI util that passes your file through Go-Template with your en
 root /srv/caddy/ghost
 ext .html .htm
 
-{{ if and (envExists "GHOST_PORT") (ne (env "GHOST_PORT") "") }}
-proxy localhost:{{ env "GHOST_PORT" }} {
+{{ if and (envExists "ghost_port") (ne (env "ghost_port") "") }}
+proxy localhost:{{ env "ghost_port" }} {
   transparent
   websocket
 }
 {{ end }}
 ```
 
-With:
-
-```
-export GHOST_PORT=8080
-export GHOST_ENV=production
-export CADDY_SSL_EMAIL=user@example.com
-export CADDY_SSL=true
-./envp -file=./test \
-  -stdout
-```
-
-Results in
+You would get
 
 ```
 tls user@example.com

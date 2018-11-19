@@ -18,6 +18,7 @@ func TestTemplate__reindent(t *testing.T) {
 	assert.Equal(t, e, actual,
 		"it reindents")
 }
+
 func TestTemplate__trimEmpty(t *testing.T) {
 	s, e := "1\n        \n2", "1\n\n2"
 	tt := createTemplate("")
@@ -98,18 +99,18 @@ func TestTemplate__env(t *testing.T) {
 
 func TestTemplate__boolEnv(t *testing.T) {
 	os.Setenv("TRUE_1", "1")
-	os.Setenv("TRUE_true", "true")
-	os.Setenv("FALSE_false", "false")
+	os.Setenv("TRUE_TRUE", "true")
+	os.Setenv("FALSE_FALSE", "false")
 	os.Setenv("FALSE_0", "0")
 	os.Setenv("BLANK", "")
 
 	tt := createTemplate("")
 	for _, v := range [][3]interface{}{
 		{false, "FALSE_0", "it's false if it's 0"},
-		{true, "TRUE_true", "it's true if it's true"},
+		{true, "TRUE_TRUE", "it's true if it's true"},
 		{false, "UNKNOWN", "it's false if it doesn't exit"},
 		{false, "HOME", "it's false if it exists and isn't true/1"},
-		{false, "FALSE_false", "it's false if it's false"},
+		{false, "FALSE_FALSE", "it's false if it's false"},
 		{false, "BLANK", "it's false if it's blank"},
 		{true, "TRUE_1", "it's true if it's 1"},
 	} {
