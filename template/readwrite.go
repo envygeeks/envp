@@ -36,7 +36,8 @@ func readers(file string) []*os.File {
 		log.Fatalln(err)
 	}
 
-	if finfo, err := os.Stat(file); err == nil {
+	finfo, err := os.Stat(file)
+	if err == nil {
 		if !finfo.IsDir() {
 			reader := reader(file)
 			return []*os.File{
@@ -65,7 +66,7 @@ func readers(file string) []*os.File {
 func writer(file string, stdout bool) *os.File {
 	var fm os.FileMode
 	if stdout {
-		log.Debugf("switching to stdout writer")
+		log.Debugf("using stdout")
 		return os.Stdout
 	}
 
