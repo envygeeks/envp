@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/envygeeks/envp/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -32,12 +31,20 @@ func reader(file string) *os.File {
 }
 
 func readers(file string) []*os.File {
-	file = utils.Expand(file)
-	if !utils.IsDir(file) {
-		reader := reader(file)
-		return []*os.File{
-			reader,
+	file, err := filepath.Abs(file)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if finfo, err := os.Stat(file); err == nil {
+		if !finfo.IsDir() {
+			reader := reader(file)
+			return []*os.File{
+				reader,
+			}
 		}
+	} else {
+		log.Fatalln(err)
 	}
 
 	files := []*os.File{}
@@ -62,7 +69,11 @@ func writer(file string, stdout bool) *os.File {
 		return os.Stdout
 	}
 
-	file = utils.Expand(file)
+	file, err := filepath.Abs(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	log.Debugf("opening a writer to %s", file)
 	fm, op := 0644, os.O_CREATE|os.O_WRONLY
 	writer, err := os.OpenFile(file, op, fm)

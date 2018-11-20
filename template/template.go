@@ -20,6 +20,7 @@ import (
 // for all of our internal functions, for
 // the template, and stuff for you.
 type Template struct {
+	use      string
 	template *template.Template
 	debug    bool
 }
@@ -30,10 +31,17 @@ type Template struct {
 func New(debug bool) *Template {
 	externalTemplate := template.New("envp")
 	helpers.New(externalTemplate)
+
 	return &Template{
 		template: externalTemplate,
 		debug:    debug,
 	}
+}
+
+// Use tells us to use this specific template
+func (t *Template) Use(f string) {
+	f = filepath.Base(f)
+	t.use = f
 }
 
 // ParseFiles parses all your readers
@@ -67,22 +75,32 @@ func (t *Template) Parse(r NamedReader) *template.Template {
 func (t *Template) Exec() []byte {
 	var tt *template.Template
 
-	templates := t.template.Templates()
-	for _, ttt := range templates {
-		if ttt.Name() == "base.gohtml" || ttt.Name() == "root.gohtml" {
-			tt = ttt
-			break
+	if t.use != "" {
+		log.Debugf("using requested %s", t.use)
+		tt = t.template.Lookup(t.use)
+		if tt == nil {
+			log.Fatalf("unable to find %s", t.use)
+		}
+	} else {
+		templates := t.template.Templates()
+		for _, ttt := range templates {
+			if ttt.Name() == "base.gohtml" || ttt.Name() == "root.gohtml" {
+				tt = ttt
+				break
+			}
+		}
+
+		if tt == nil {
+			tt = templates[0]
+			if tt == nil {
+				log.Fatalln("no template found")
+			}
 		}
 	}
 
-	tt = templates[0]
-	if tt == nil {
-		log.Fatalln("unable to find a template")
-	}
-
-	var b bytes.Buffer
+	b := &bytes.Buffer{}
 	log.Infof("executing %s", tt.Name())
-	if err := tt.Execute(&b, ""); err != nil {
+	if err := tt.Execute(b, ""); err != nil {
 		log.Fatal(err)
 	}
 

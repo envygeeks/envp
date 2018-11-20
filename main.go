@@ -20,11 +20,19 @@ func main() {
 	}
 
 	log.SetLevel(l)
-	t := template.New(d)
-	f, o, s := a.String("file"), a.String("output"), a.Bool("stdout")
+	f := a.String("file")
+	o := a.String("output")
+	s := a.Bool("stdout")
+
 	r, w := template.Open(f, o, s)
 	defer template.Close(r, w)
+	t := template.New(d)
 	t.ParseFiles(r)
+
+	if len(r) == 1 {
+		t.Use(r[0].Name())
+	}
+
 	b := t.Exec()
 	t.Write(b, w)
 }
