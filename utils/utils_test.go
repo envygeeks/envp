@@ -15,6 +15,24 @@ type ts struct {
 	d string
 }
 
+func TestIsDir(t *testing.T) {
+	for _, tt := range []ts{
+		ts{
+			e: true,
+			d: "it's true when it is",
+			a: "/",
+		},
+		ts{
+			a: "/should/not/exist",
+			d: "it's false when it isn't",
+			e: false,
+		},
+	} {
+		a := IsExist(tt.a.(string))
+		assert.Equal(t, tt.e, a, tt.d)
+	}
+}
+
 func TestIsExist(t *testing.T) {
 	for _, tt := range []ts{
 		ts{

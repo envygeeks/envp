@@ -13,11 +13,18 @@ import (
  */
 func main() {
 	a := NewFlags().Parse()
+	d := a.Bool("debug")
 	l := log.WarnLevel
-	if a.Bool("debug") {
+	if d {
 		l = log.DebugLevel
 	}
 
 	log.SetLevel(l)
-	template.New(&a).Run()
+	t := template.New(d)
+	f, o, s := a.String("file"), a.String("output"), a.Bool("stdout")
+	r, w := template.Open(f, o, s)
+	defer template.Close(r, w)
+	t.ParseFiles(r)
+	b := t.Exec()
+	t.Write(b, w)
 }

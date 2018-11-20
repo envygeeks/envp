@@ -5,16 +5,14 @@
 package template
 
 import (
-	"fmt"
+	"bytes"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"text/template"
 
-	"github.com/envygeeks/envp/args"
 	"github.com/envygeeks/envp/helpers"
-	"github.com/envygeeks/envp/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -22,133 +20,81 @@ import (
 // for all of our internal functions, for
 // the template, and stuff for you.
 type Template struct {
-	file      string
-	output    string
-	template  *template.Template
-	helpers   *helpers.Helpers
-	templates []string
-	stdout    bool
-	debug     bool
-	glob      bool
+	template *template.Template
+	debug    bool
 }
 
 // New creates a new template, and logs it for
 // the entire world to know if they really need to
 // know what's going on for debugging purposes.
-func New(a *args.Args) *Template {
+func New(debug bool) *Template {
 	externalTemplate := template.New("envp")
-	t := (&Template{
-		debug:    a.Bool("debug"),
-		helpers:  helpers.New(externalTemplate),
-		file:     utils.Expand(a.String("file")),
-		output:   utils.Expand(a.String("output")),
+	helpers.New(externalTemplate)
+	return &Template{
 		template: externalTemplate,
-		stdout:   a.Bool("stdout"),
-		glob:     a.Bool("glob"),
-	}).verify()
-	return t
+		debug:    debug,
+	}
 }
 
-// Verify verifies the file exists.
-func (t *Template) verify() *Template {
-	if !utils.IsExist(t.file) {
-		log.Fatalf("%s doesn't exist", t.file)
+// ParseFiles parses all your readers
+func (t *Template) ParseFiles(fs []*os.File) []*template.Template {
+	var ts []*template.Template
+	for _, v := range fs {
+		ts = append(ts, t.Parse(v))
 	}
 
-	return t
-}
-
-// Load loads the templates.
-// If you add new templates, you can rerun
-// Load() and Parse(), or Run()
-func (t *Template) Load() {
-	if t.glob {
-		var err error
-		log.Infof("searching for *.gohtml in %s", t.file)
-		p := filepath.Join(t.file, "*.gohtml")
-		t.templates, err = filepath.Glob(p)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	} else {
-		t.templates = []string{
-			t.file,
-		}
-	}
+	return ts
 }
 
 // Parse parses the templates.
-func (t *Template) Parse() {
-	log.Printf("attempting to parse %+v", t.templates)
-	if _, err := t.template.ParseFiles(t.templates...); err != nil {
-		log.Warnf("unable to parse %+v", t.templates)
+func (t *Template) Parse(r NamedReader) *template.Template {
+	log.Printf("attempting to parse %+v", r.Name())
+	tt := t.template.New(filepath.Base(r.Name()))
+	if b, err := ioutil.ReadAll(r); err != nil {
 		log.Fatalln(err)
+	} else {
+		if _, err := tt.Parse(string(b)); err != nil {
+			log.Fatalln(err)
+		}
 	}
+
+	return tt
 }
 
 // Exec runs exec on the template.
 // Before you hit this stage you should really be
 // running Load(), and Parse() to get ready.
-func (t *Template) Exec() *strings.Builder {
+func (t *Template) Exec() []byte {
 	var tt *template.Template
 
-	if len(t.templates) == 1 {
-		name := filepath.Base(t.templates[0])
-		log.Infof("looking for %s", name)
-		if tt = t.template.Lookup(name); tt == nil {
-			log.Fatalf("no template \"%s\"", name)
-		}
-	} else {
-		for _, v := range []string{"base.gohtml", "root.gohtml"} {
-			log.Infof("looking for %s", v)
-			tt = t.template.Lookup(v)
-			if tt != nil {
-				break
-			}
-		}
-
-		if tt == nil {
-			log.Fatal("no base, or root")
+	templates := t.template.Templates()
+	for _, ttt := range templates {
+		if ttt.Name() == "base.gohtml" || ttt.Name() == "root.gohtml" {
+			tt = ttt
+			break
 		}
 	}
 
-	var s strings.Builder
+	tt = templates[0]
+	if tt == nil {
+		log.Fatalln("unable to find a template")
+	}
+
+	var b bytes.Buffer
 	log.Infof("executing %s", tt.Name())
-	if err := tt.Execute(&s, ""); err != nil {
+	if err := tt.Execute(&b, ""); err != nil {
 		log.Fatal(err)
 	}
 
-	return &s
+	return b.Bytes()
 }
 
 // Write writes to stdout, or a file.
-func (t *Template) Write(s *strings.Builder) {
-	if !t.stdout {
-		d := filepath.Dir(t.output)
-		log.Infof("writing %s", t.output)
-		if err := os.MkdirAll(d, 0644); err != nil {
-			log.Fatalln(err)
-		} else {
-			b := []byte(s.String())
-			if err := ioutil.WriteFile(t.output, b, 0644); err != nil {
-				log.Fatalln(err)
-			}
-		}
-	} else {
-		if t.debug {
-			fmt.Print("\n\n")
-			fmt.Print("\n\n")
-			fmt.Print("\n\n")
-		}
-
-		fmt.Println(s.String())
+func (t *Template) Write(b []byte, w io.Writer) int {
+	i, err := w.Write(b)
+	if err != nil {
+		log.Fatalln(err)
 	}
-}
 
-// Run runs Load(), Parse()
-func (t *Template) Run() {
-	t.Load()
-	t.Parse()
-	s := t.Exec()
-	t.Write(s)
+	return i
 }

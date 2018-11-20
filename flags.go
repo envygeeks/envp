@@ -19,7 +19,6 @@ type Flags []interface{}
 func NewFlags() *Flags {
 	return &Flags{
 		StringArg{"file", "", "the file, or dir"},
-		BoolArg{"glob", false, "search, and use a dir full of *.gohtml"},
 		StringArg{"output", "", "the file to write to"},
 		BoolArg{"stdout", false, "print to stdout"},
 		BoolArg{"debug", false, "debug output"},

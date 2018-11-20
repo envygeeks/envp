@@ -10,6 +10,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// IsDir tells you if a path is a directory
+func IsDir(s string) bool {
+	finfo, err := os.Stat(s)
+	if err != nil {
+		log.Warningln(err)
+		return false
+	}
+
+	return finfo.IsDir()
+}
+
 // Expand expands a path just throwing the error
 // upstream as a fatal error if we cannot expand it
 // instead of passing the error downstream.
