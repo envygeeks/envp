@@ -14,51 +14,65 @@ import (
 
 func TestEnvExists(t *testing.T) {
 	os.Setenv("BLANK", "")
+	type TestStruct struct {
+		expected    bool
+		description string
+		key         string
+	}
+
 	h := New(template.New("env"))
-	for _, tt := range []ts{
-		ts{
-			a: "HOME",
-			d: "it's true if it exists",
-			e: true,
+	for _, ts := range []TestStruct{
+		TestStruct{
+			key:         "HOME",
+			description: "it's true if it exists",
+			expected:    true,
 		},
-		ts{
-			a: "UNKNOWN",
-			d: "it's false if it doesn't exist",
-			e: false,
+		TestStruct{
+			key:         "UNKNOWN",
+			description: "it's false if it doesn't exist",
+			expected:    false,
 		},
-		ts{
-			a: "BLANK",
-			d: "It's true if blank",
-			e: true,
+		TestStruct{
+			key:         "BLANK",
+			description: "It's true if blank",
+			expected:    true,
 		},
 	} {
-		a := h.EnvExists(tt.a.(string))
-		assert.Equal(t, tt.e, a, tt.d)
+		actual := h.EnvExists(ts.key)
+		assert.Equal(t, ts.expected, actual,
+			ts.description)
 	}
 }
 
 func TestEnv(t *testing.T) {
 	os.Setenv("BLANK", "")
+	type TestStruct struct {
+		expected    string
+		description string
+		key         string
+	}
+
 	h := New(template.New("env"))
-	for _, tt := range []ts{
-		ts{
-			a: "HOME",
-			d: "it's a string if it exists",
-			e: "",
+	for _, ts := range []TestStruct{
+		TestStruct{
+			key:         "HOME",
+			description: "it's a string if it exists",
+			expected:    "",
 		},
-		ts{
-			a: "UNKNOWN",
-			d: "it's a string if it doesn't exist",
-			e: "",
+		TestStruct{
+			key:         "UNKNOWN",
+			description: "it's a string if it doesn't exist",
+			expected:    "",
 		},
-		ts{
-			a: "BLANK",
-			d: "it's a string if blank",
-			e: "",
+		TestStruct{
+			key:         "BLANK",
+			description: "it's a string if blank",
+			expected:    "",
 		},
 	} {
-		a := h.Env(tt.a.(string))
-		assert.IsType(t, tt.e, a, tt.d)
+		actual := h.Env(ts.key)
+		assert.IsType(t, ts.expected, actual,
+			ts.description)
 	}
 }
 
@@ -69,45 +83,52 @@ func TestTemplate__boolEnv(t *testing.T) {
 	os.Setenv("FALSE_0", "0")
 	os.Setenv("BLANK", "")
 
+	type TestStruct struct {
+		expected    bool
+		description string
+		key         string
+	}
+
 	h := New(template.New("envp"))
-	for _, tt := range []ts{
-		ts{
-			a: "FALSE_0",
-			d: "it's false if it's 0",
-			e: false,
+	for _, ts := range []TestStruct{
+		TestStruct{
+			expected:    false,
+			description: "it's false if it's 0",
+			key:         "FALSE_0",
 		},
-		ts{
-			a: "UNKNOWN",
-			d: "it's false if it doesn't exist",
-			e: false,
+		TestStruct{
+			expected:    false,
+			description: "it's false if it doesn't exist",
+			key:         "UNKNOWN",
 		},
-		ts{
-			a: "TRUE_TRUE",
-			d: "it's true if it's true",
-			e: true,
+		TestStruct{
+			key:         "TRUE_TRUE",
+			description: "it's true if it's true",
+			expected:    true,
 		},
-		ts{
-			a: "HOME",
-			d: "it's false if it exists, and isn't true/1",
-			e: false,
+		TestStruct{
+			expected:    false,
+			description: "it's false if it exists, and isn't true/1",
+			key:         "HOME",
 		},
-		ts{
-			a: "FALSE_FALSE",
-			d: "it's false if it's false",
-			e: false,
+		TestStruct{
+			key:         "FALSE_FALSE",
+			description: "it's false if it's false",
+			expected:    false,
 		},
-		ts{
-			a: "BLANK",
-			d: "it's false if it's blank",
-			e: false,
+		TestStruct{
+			expected:    false,
+			description: "it's false if it's blank",
+			key:         "BLANK",
 		},
-		ts{
-			a: "TRUE_1",
-			d: "it's true if it's 1",
-			e: true,
+		TestStruct{
+			expected:    true,
+			description: "it's true if it's 1",
+			key:         "TRUE_1",
 		},
 	} {
-		a := h.BoolEnv(tt.a.(string))
-		assert.Equal(t, tt.e, a, tt.d)
+		actual := h.BoolEnv(ts.key)
+		assert.Equal(t, ts.expected, actual,
+			ts.description)
 	}
 }

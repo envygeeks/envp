@@ -9,13 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type ts struct {
-	a interface{}
-	e interface{}
-	d string
-}
-
 func TestNew(t *testing.T) {
-	a, e := New(), Args{}
-	assert.IsType(t, e, a)
+	actual, expected := New(), Args{}
+	assert.IsType(t, expected,
+		actual)
 }

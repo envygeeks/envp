@@ -1,6 +1,7 @@
 // Copyright 2018 Jordon Bedwell. All rights reserved.
 // Use of this source code is governed by the MIT license
 // that can be found in the LICENSE file.
+
 package args
 
 // Bool pulls a value as a boolean, this
@@ -20,11 +21,18 @@ func (a Args) Bool(k string) bool {
 // supports *bool, and bool, because either
 // can be given depending on flags
 func (a Args) String(k string) string {
-	o, ok := a[k].(string)
-	if ok {
-		return o
+	v, ok := a[k]
+	if !ok {
+		return ""
 	}
 
-	v := *a[k].(*string)
-	return string(v)
+	if s, ok := v.(string); !ok {
+		if s, ok := v.(*string); ok && s != nil {
+			return string(*s)
+		}
+	} else {
+		return s
+	}
+
+	return ""
 }

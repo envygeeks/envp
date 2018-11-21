@@ -17,61 +17,82 @@ func TestTemplateString(t *testing.T) {
 	tt.Parse("{{ define \"hello\" }}world{{ end }}")
 	h := New(tt)
 
-	for _, ttt := range []ts{
-		ts{
-			e: "world",
-			d: "it's world",
-			a: "hello",
+	type TestStruct struct {
+		expected    string
+		description string
+		key         string
+	}
+
+	for _, ts := range []TestStruct{
+		TestStruct{
+			expected:    "world",
+			description: "it's world",
+			key:         "hello",
 		},
 	} {
-		a := h.TemplateString(ttt.a.(string))
-		assert.Equal(t, ttt.e, a, ttt.d)
+		actual := h.TemplateString(ts.key)
+		assert.Equal(t, ts.expected, actual,
+			ts.description)
 	}
 }
 
 func TestTrimmedTemplate(t *testing.T) {
-	td := "{{ define \"hello\" }}%s{{ end }}"
-	for _, ttt := range []ts{
-		ts{
-			e: "world",
-			d: "it works on simple strings",
-			a: "world",
+	templateDefinition := "{{ define \"hello\" }}%s{{ end }}"
+	type TestStruct struct {
+		expected    string
+		description string
+		input       string
+	}
+
+	for _, ts := range []TestStruct{
+		TestStruct{
+			expected:    "world",
+			description: "it works on simple strings",
+			input:       "world",
 		},
-		ts{
-			a: "\n\nworld",
-			d: "it works on strings with edged space",
-			e: "world",
+		TestStruct{
+			input:       "\n\nworld",
+			description: "it works on strings with edged space",
+			expected:    "world",
 		},
-		ts{
-			a: "hello\n   \nworld",
-			d: "it trims lines with nothing but space",
-			e: "hello\n\nworld",
+		TestStruct{
+			input:       "hello\n   \nworld",
+			description: "it trims lines with nothing but space",
+			expected:    "hello\n\nworld",
 		},
 	} {
 		tt := template.New("envp")
-		tt.Parse(fmt.Sprintf(td, ttt.a.(string)))
+		tt.Parse(fmt.Sprintf(templateDefinition, ts.input))
 		h := New(tt)
 
-		a := h.TrimmedTemplate("hello")
-		assert.Equal(t, ttt.e, a, ttt.d)
+		actual := h.TrimmedTemplate("hello")
+		assert.Equal(t, ts.expected, actual,
+			ts.description)
 	}
 }
 
 func TestIndentedTemplate(t *testing.T) {
-	td := "{{ define \"hello\" }}%s{{ end }}"
-	for _, ttt := range []ts{
-		ts{
-			e: "hello\n  big\nworld",
-			a: "\n\n\thello\n\t  big\n\tworld",
-			d: "it reindents",
+	templateDefinition := "{{ define \"hello\" }}%s{{ end }}"
+	type TestStruct struct {
+		expected    string
+		description string
+		input       string
+	}
+
+	for _, ts := range []TestStruct{
+		TestStruct{
+			expected:    "hello\n  big\nworld",
+			description: "it reindents the template properly",
+			input:       "\n\n\thello\n\t  big\n\tworld",
 		},
 	} {
 		tt := template.New("envp")
-		tt.Parse(fmt.Sprintf(td, ttt.a.(string)))
+		tt.Parse(fmt.Sprintf(templateDefinition, ts.input))
 		h := New(tt)
 
-		a := h.IndentedTemplate("hello")
-		assert.Equal(t, ttt.e, a, ttt.d)
+		actual := h.IndentedTemplate("hello")
+		assert.Equal(t, ts.expected, actual,
+			ts.description)
 	}
 }
 
@@ -80,29 +101,36 @@ func TestTemplateExists(t *testing.T) {
 	tt.Parse("{{ define \"hello\" }}world{{ end }}")
 	h := New(tt)
 
-	for _, ttt := range []ts{
-		ts{
-			a: "envp",
-			d: "it's true for itself",
-			e: true,
+	type TestStruct struct {
+		expected    bool
+		description string
+		key         string
+	}
+
+	for _, ts := range []TestStruct{
+		TestStruct{
+			expected:    true,
+			description: "it's true for itself",
+			key:         "envp",
 		},
-		ts{
-			a: "hello",
-			d: "it's true for define",
-			e: true,
+		TestStruct{
+			expected:    true,
+			description: "it's true for define",
+			key:         "hello",
 		},
-		ts{
-			e: false,
-			d: "it's false if blank",
-			a: "",
+		TestStruct{
+			expected:    false,
+			description: "it's false if blank",
+			key:         "",
 		},
-		ts{
-			a: "unknown",
-			d: "it's false if it doesn't exist",
-			e: false,
+		TestStruct{
+			expected:    false,
+			description: "it's false if it doesn't exist",
+			key:         "unknown",
 		},
 	} {
-		a := h.TemplateExists(ttt.a.(string))
-		assert.Equal(t, ttt.e, a, ttt.d)
+		actual := h.TemplateExists(ts.key)
+		assert.Equal(t, ts.expected, actual,
+			ts.description)
 	}
 }

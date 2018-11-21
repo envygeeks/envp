@@ -5,34 +5,42 @@
 package main
 
 import (
+	"flag"
+	"io/ioutil"
+
 	"github.com/envygeeks/envp/template"
 	log "github.com/sirupsen/logrus"
 )
 
+func init() {
+	// Disable log output when we are testing.
+	if v := flag.Lookup("test.v"); v != nil || v.Value.String() == "true" {
+		log.SetOutput(ioutil.Discard)
+	}
+}
+
 /**
  */
 func main() {
-	a := NewFlags().Parse()
-	d := a.Bool("debug")
-	l := log.WarnLevel
-	if d {
-		l = log.DebugLevel
+	args := NewFlags().Parse()
+	debug := args.Bool("debug")
+	lvl := log.WarnLevel
+	if debug {
+		lvl = log.DebugLevel
 	}
 
-	log.SetLevel(l)
-	f := a.String("file")
-	o := a.String("output")
-	s := a.Bool("stdout")
+	log.SetLevel(lvl)
+	ttemplate := template.New(debug)
+	file, output, stdout := args.String("file"), args.String("output"), args.Bool("stdout")
+	readers, writer := template.Open(file, output, stdout)
+	defer template.Close(readers, writer)
+	ttemplate.ParseFiles(readers)
 
-	r, w := template.Open(f, o, s)
-	defer template.Close(r, w)
-	t := template.New(d)
-	t.ParseFiles(r)
-
-	if len(r) == 1 {
-		t.Use(r[0].Name())
+	if len(readers) == 1 {
+		ttemplate.Use(readers[0].Name())
 	}
 
-	b := t.Exec()
-	t.Write(b, w)
+	b := ttemplate.Exec()
+	ttemplate.Write(b,
+		writer)
 }

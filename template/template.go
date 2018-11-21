@@ -101,7 +101,7 @@ func (t *Template) Exec() []byte {
 	b := &bytes.Buffer{}
 	log.Infof("executing %s", tt.Name())
 	if err := tt.Execute(b, ""); err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 
 	return b.Bytes()

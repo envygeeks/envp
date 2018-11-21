@@ -13,48 +13,57 @@ import (
 
 func TestSpace(t *testing.T) {
 	h := New(template.New("envp"))
-	for _, tt := range []ts{
-		ts{
-			e: " 1",
-			d: "it works for simple strings",
-			a: "1",
+	type TestStruct struct {
+		expected    string
+		description string
+		input       string
+	}
+
+	for _, ts := range []TestStruct{
+		TestStruct{
+			expected:    " 1",
+			description: "it works for simple strings",
+			input:       "1",
 		},
-		ts{
-			e: " 1",
-			d: "it works for strings with space",
-			a: "   1 ",
+		TestStruct{
+			expected:    " 1",
+			description: "it works for strings with space",
+			input:       "   1 ",
 		},
-		ts{
-			a: "1\n",
-			d: "it works with newlines",
-			e: " 1",
+		TestStruct{
+			input:       "1\n",
+			description: "it works with newlines",
+			expected:    " 1",
 		},
 	} {
-		a := h.Space(tt.a.(string), 1)
-		assert.Equal(t, tt.e, a, tt.d)
+		actual := h.Space(ts.input, 1)
+		assert.Equal(t, ts.expected, actual,
+			ts.description)
 	}
 }
 
 func TestReindent(t *testing.T) {
 	h := New(template.New("envp"))
-	s, e := "\n\n\t1\n\t  2\n\t3", "1\n  2\n3"
-	a := h.Reindent(s)
-
-	assert.Equal(t, e, a)
+	input, expected := "\n\n\t1\n\t  2\n\t3", "1\n  2\n3"
+	actual := h.Reindent(input)
+	assert.Equal(t, expected,
+		actual)
 }
 
 func TestTrimEmpty(t *testing.T) {
 	h := New(template.New("envp"))
-	s, e := "1\n        \n2", "1\n\n2"
-	a := h.TrimEmpty(s)
+	input, expected := "1\n        \n2", "1\n\n2"
+	actual := h.TrimEmpty(input)
 
-	assert.Equal(t, e, a)
+	assert.Equal(t, expected,
+		actual)
 }
 
 func TestTrimEdges(t *testing.T) {
 	h := New(template.New("envp"))
-	s, e := "\n\n1\n2\n\n", "1\n2"
-	a := h.TrimEdges(s)
+	input, expected := "\n\n1\n2\n\n", "1\n2"
+	actual := h.TrimEdges(input)
 
-	assert.Equal(t, e, a)
+	assert.Equal(t, expected,
+		actual)
 }

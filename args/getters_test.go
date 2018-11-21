@@ -10,40 +10,54 @@ import (
 )
 
 func TestBool(t *testing.T) {
-	for _, tt := range []ts{
-		ts{
-			a: &[]bool{false}[0],
-			d: "it's false when false",
-			e: false,
+	type TestStruct struct {
+		input       *bool
+		description string
+		expected    bool
+	}
+
+	for _, ts := range []TestStruct{
+		TestStruct{
+			input:       &[]bool{false}[0],
+			description: "it's false when false",
+			expected:    false,
 		},
-		ts{
-			a: &[]bool{true}[0],
-			d: "it's true when true",
-			e: true,
+		TestStruct{
+			input:       &[]bool{true}[0],
+			description: "it's true when true",
+			expected:    true,
 		},
 	} {
 		args := Args{
-			"k": tt.a,
+			"k": ts.input,
 		}
 
-		a := args.Bool("k")
-		assert.IsType(t, tt.e, a, tt.d)
+		actual := args.Bool("k")
+		assert.Equal(t, ts.expected, actual,
+			ts.description)
 	}
 }
 
 func TestString(t *testing.T) {
-	for _, tt := range []ts{
-		ts{
-			a: &[]string{""}[0],
-			d: "it returns a string",
-			e: "",
+	type TestStruct struct {
+		input       *string
+		description string
+		expected    string
+	}
+
+	for _, ts := range []TestStruct{
+		TestStruct{
+			input:       &[]string{""}[0],
+			description: "it returns a string",
+			expected:    "",
 		},
 	} {
 		args := Args{
-			"k": tt.a,
+			"k": ts.input,
 		}
 
-		a := args.String("k")
-		assert.IsType(t, tt.e, a, tt.d)
+		actual := args.String("k")
+		assert.Equal(t, ts.expected, actual,
+			ts.description)
 	}
 }

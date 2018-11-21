@@ -10,28 +10,35 @@ import (
 )
 
 func TestIsEmpty(t *testing.T) {
-	for _, tt := range []ts{
-		ts{
-			e: true,
-			d: "is true on nil",
-			a: nil,
+	type TestStruct struct {
+		input       *string
+		description string
+		expected    bool
+	}
+
+	for _, ts := range []TestStruct{
+		TestStruct{
+			expected:    true,
+			description: "is true on nil",
+			input:       nil,
 		},
-		ts{
-			a: "string",
-			d: "it's false on non-empty string",
-			e: false,
+		TestStruct{
+			input:       &[]string{"string"}[0],
+			description: "it's false on non-empty string",
+			expected:    false,
 		},
-		ts{
-			e: true,
-			d: "it's true on \"\"",
-			a: "",
+		TestStruct{
+			input:       &[]string{""}[0],
+			description: "it's true on \"\"",
+			expected:    true,
 		},
 	} {
 		args := Args{
-			"k": tt.a,
+			"k": ts.input,
 		}
 
-		a := args.IsEmpty("k")
-		assert.Equal(t, tt.e, a, tt.d)
+		actual := args.IsEmpty("k")
+		assert.Equal(t, ts.expected, actual,
+			ts.description)
 	}
 }

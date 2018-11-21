@@ -11,59 +11,113 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type ts struct {
-	a interface{}
-	e interface{}
-	d string
+func (t *TestReader) Name() string {
+	return t._name
 }
 
-type testReader struct {
+type TestReader struct {
 	_name string
 	*strings.Reader
 }
 
-func (t *testReader) Name() string {
-	return t._name
-}
-
 func TestParse(t *testing.T) {
-	tt := New(false)
-	rr := &testReader{
-		Reader: strings.NewReader("hello"),
-		_name:  "test1",
+	type TestStruct struct {
+		expected    string
+		description string
+		name        string
 	}
 
-	tt.Parse(rr)
-	ttt := tt.template.Lookup("test1")
-	assert.NotNil(t, ttt)
+	for _, ts := range []TestStruct{
+		TestStruct{
+			expected:    "Hello World",
+			description: "it's not nil",
+			name:        "hello",
+		},
+	} {
+		tt := New(false)
+		tr := &TestReader{
+			Reader: strings.NewReader(ts.expected),
+			_name:  ts.name,
+		}
+
+		tt.Parse(tr)
+		var s strings.Builder
+		ttt := tt.template.Lookup(ts.name)
+		if assert.NotNil(t, ttt) {
+			ttt.Execute(&s, "")
+			actual := s.String()
+			assert.Equal(t, ts.expected, actual,
+				ts.description)
+		}
+	}
 }
 
 func TestExec(t *testing.T) {
-	tt := New(false)
-	rr := &testReader{
-		Reader: strings.NewReader("hello"),
-		_name:  "test1",
+	type TestStruct struct {
+		expected    string
+		description string
+		name        string
+		use         string
 	}
 
-	tt.Parse(rr)
-	a := string(tt.Exec())
-	e := "hello"
+	for _, ts := range []TestStruct{
+		TestStruct{
+			expected:    "Hello World: 1",
+			description: "it returns a byte",
+			name:        "hello-1",
+		},
+		TestStruct{
+			name:        "hello-2",
+			expected:    "Hello World: 2",
+			description: "it works with use",
+			use:         "hello-2",
+		},
+	} {
+		tt := New(false)
+		tr := &TestReader{
+			Reader: strings.NewReader(ts.expected),
+			_name:  ts.name,
+		}
 
-	assert.Equal(t, e, a)
+		if ts.use != "" {
+			tt.Use(ts.use)
+			expected, actual := ts.name, tt.use
+			assert.Equal(t, expected, actual,
+				ts.description)
+		}
+
+		tt.Parse(tr)
+		actual := string(tt.Exec())
+		assert.Equal(t, ts.expected,
+			actual)
+	}
 }
 
 func TestWrite(t *testing.T) {
-	tt := New(false)
-	rr := &testReader{
-		Reader: strings.NewReader("hello"),
-		_name:  "test1",
+	type TestStruct struct {
+		expected    string
+		description string
+		name        string
 	}
 
-	tt.Parse(rr)
-	var s strings.Builder
-	tt.Write(tt.Exec(), &s)
-	a := s.String()
-	e := "hello"
+	for _, ts := range []TestStruct{
+		TestStruct{
+			expected:    "hello",
+			description: "it writes the template",
+			name:        "test1",
+		},
+	} {
+		tt := New(false)
+		tr := &TestReader{
+			Reader: strings.NewReader(ts.expected),
+			_name:  ts.name,
+		}
 
-	assert.Equal(t, e, a)
+		tt.Parse(tr)
+		var s strings.Builder
+		tt.Write(tt.Exec(), &s)
+		actual := s.String()
+		assert.Equal(t, ts.expected, actual,
+			ts.description)
+	}
 }
