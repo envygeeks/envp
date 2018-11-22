@@ -1,7 +1,7 @@
 language: go
 after_success: script/report
-before_install: ["go mod download"]
 before_script: script/report before
+install: "go mod download"
 script: script/test
 sudo: false
 env:
