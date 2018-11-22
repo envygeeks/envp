@@ -15,13 +15,9 @@ var (
 	always = log.New(os.Stderr, "", 0)
 )
 
-func SetOutput(w io.Writer) {
-	// So we can control with -debug
-	normal.SetOutput(w)
-}
-
 /**
  */
+func SetOutput(w io.Writer)    { normal.SetOutput(w) }
 func Println(v ...interface{}) { normal.Println(v...) }
 func Fatalln(v ...interface{}) { always.Fatalln(v...) }
 func Panicln(v ...interface{}) {
