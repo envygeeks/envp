@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/envygeeks/envp/helpers"
 	"github.com/envygeeks/envp/logger"
+	"github.com/envygeeks/envp/template/helpers"
 )
 
 // Template provides a context wrapper

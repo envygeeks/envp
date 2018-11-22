@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/envygeeks/envp/flags"
 	"github.com/envygeeks/envp/logger"
 	"github.com/envygeeks/envp/template"
 )
@@ -15,7 +16,7 @@ import (
 /**
  */
 func main() {
-	args := NewFlags().Parse()
+	args := flags.Parse()
 	logger.SetOutput(ioutil.Discard)
 	debug := args.Bool("debug")
 	if debug {
