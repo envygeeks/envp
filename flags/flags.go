@@ -36,8 +36,9 @@ type Bool struct {
 }
 
 var (
-	// Defaults are defaults
-	Defaults = &List{
+	ran      = false
+	parsed   *args.Args
+	defaults = &List{
 		String{
 			Name:        "file",
 			Description: "the file, or dir",
@@ -62,15 +63,21 @@ var (
 )
 
 // Parse parses our flags
-func Parse() args.Args {
-	return Defaults.Parse()
+func Parse() *args.Args {
+	if !ran || parsed == nil {
+		ran = true
+		parsed = defaults.Parse()
+		return parsed
+	}
+
+	return parsed
 }
 
 // Parse parses our flags, and returns them,
 // we just encapsulate this to make life a little
 // easier at the end of the day, when working.
-func (f List) Parse() (a args.Args) {
-	a = args.New()
+func (f List) Parse() *args.Args {
+	a := args.New()
 	for _, v := range f {
 		switch v.(type) {
 		case Bool:
@@ -105,5 +112,5 @@ func (f List) Parse() (a args.Args) {
 		flag.Parse()
 	}
 
-	return
+	return &a
 }

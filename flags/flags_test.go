@@ -13,7 +13,7 @@ import (
 
 func TestParse(t *testing.T) {
 	actual := Parse()
-	expected := args.Args{}
+	expected := &args.Args{}
 	assert.IsType(t, expected,
 		actual)
 }
