@@ -7,7 +7,7 @@ package helpers
 import (
 	"strings"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/envygeeks/envp/logger"
 )
 
 // TemplateString allows you to pull a template
@@ -18,14 +18,14 @@ func (h *Helpers) TemplateString(s string) string {
 	if tt := h.template.Lookup(s); tt != nil {
 		var ss strings.Builder
 		if err := tt.Execute(&ss, h.template); err != nil {
-			log.Fatalln(err)
+			logger.Fatalln(err)
 		}
 
 		return ss.String()
 	}
 
 	// Bad template given.
-	log.Fatalf("Unable to find %s", s)
+	logger.Fatalf("Unable to find %s", s)
 	return ""
 }
 
@@ -48,7 +48,7 @@ func (h *Helpers) IndentedTemplate(s string) string {
 // template exists inside of the templates, this also
 // works for context based {{ define "name" }}.
 func (h *Helpers) TemplateExists(s string) bool {
-	log.Debugf("looking for template %s", s)
+	logger.Printf("looking for template %s", s)
 	if tt := h.template.Lookup(s); tt != nil {
 		return true
 	}

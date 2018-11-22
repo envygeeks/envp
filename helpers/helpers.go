@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/envygeeks/envp/logger"
 )
 
 // Helpers provides the struct that holds
@@ -27,7 +27,7 @@ func New(t *template.Template) *Helpers {
 
 // Register registers the funcs
 func (h *Helpers) register() *Helpers {
-	log.Debug("registering all the helpers")
+	logger.Println("registering all the helpers")
 	h.template.Funcs(template.FuncMap{
 		"trim":             strings.Trim,
 		"split":            strings.Split,

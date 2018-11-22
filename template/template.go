@@ -13,7 +13,7 @@ import (
 	"text/template"
 
 	"github.com/envygeeks/envp/helpers"
-	log "github.com/sirupsen/logrus"
+	"github.com/envygeeks/envp/logger"
 )
 
 // Template provides a context wrapper
@@ -55,13 +55,13 @@ func (t *Template) ParseFiles(fs []*os.File) []*template.Template {
 
 // Parse parses the templates.
 func (t *Template) Parse(r NamedReader) *template.Template {
-	log.Printf("attempting to parse %+v", r.Name())
+	logger.Printf("attempting to parse %+v", r.Name())
 	tt := t.template.New(filepath.Base(r.Name()))
 	if b, err := ioutil.ReadAll(r); err != nil {
-		log.Fatalln(err)
+		logger.Fatalln(err)
 	} else {
 		if _, err := tt.Parse(string(b)); err != nil {
-			log.Fatalln(err)
+			logger.Fatalln(err)
 		}
 	}
 
@@ -75,10 +75,10 @@ func (t *Template) Exec() []byte {
 	var tt *template.Template
 
 	if t.use != "" {
-		log.Debugf("using requested %s", t.use)
+		logger.Printf("using requested %s", t.use)
 		tt = t.template.Lookup(t.use)
 		if tt == nil {
-			log.Fatalf("unable to find %s", t.use)
+			logger.Fatalf("unable to find %s", t.use)
 		}
 	} else {
 		templates := t.template.Templates()
@@ -92,15 +92,15 @@ func (t *Template) Exec() []byte {
 		if tt == nil {
 			tt = templates[0]
 			if tt == nil {
-				log.Fatalln("no template found")
+				logger.Fatalln("no template found")
 			}
 		}
 	}
 
 	b := &bytes.Buffer{}
-	log.Infof("executing %s", tt.Name())
+	logger.Printf("executing %s", tt.Name())
 	if err := tt.Execute(b, ""); err != nil {
-		log.Fatalln(err)
+		logger.Fatalln(err)
 	}
 
 	return b.Bytes()
@@ -110,7 +110,7 @@ func (t *Template) Exec() []byte {
 func (t *Template) Write(b []byte, w io.Writer) int {
 	i, err := w.Write(b)
 	if err != nil {
-		log.Fatalln(err)
+		logger.Fatalln(err)
 	}
 
 	return i

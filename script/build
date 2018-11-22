@@ -12,7 +12,7 @@ env GOOS=windows GOARCH=386   go build -v -ldflags '-s -w' -o binaries/envp-wind
 env GOOS=darwin  GOARCH=amd64 go build -v -ldflags '-s -w' -o binaries/envp-macos-amd64
 env GOOS=darwin  GOARCH=386   go build -v -ldflags '-s -w' -o binaries/envp-macos-i386
 
-if [[ "$MACOS_DEVELOPER_ID" ]]; then
+if [[ "$SIGN" != "false" ]] && [[ "$MACOS_DEVELOPER_ID" ]]; then
   codesign -f -s "$MACOS_DEVELOPER_ID" binaries/envp-macos-amd64
   codesign -f -s "$MACOS_DEVELOPER_ID" binaries/envp-macos-i386
 fi

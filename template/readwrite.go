@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/envygeeks/envp/logger"
 )
 
 // NamedReader is a reader with Name()
@@ -21,10 +21,10 @@ type NamedReader interface {
 }
 
 func reader(file string) *os.File {
-	log.Debugf("opening a reader to %s", file)
+	logger.Printf("opening a reader to %s", file)
 	reader, err := os.Open(file)
 	if err != nil {
-		log.Fatalln(err)
+		logger.Fatalln(err)
 	}
 
 	return reader
@@ -33,7 +33,7 @@ func reader(file string) *os.File {
 func readers(file string) []*os.File {
 	file, err := filepath.Abs(file)
 	if err != nil {
-		log.Fatalln(err)
+		logger.Fatalln(err)
 	}
 
 	finfo, err := os.Stat(file)
@@ -45,15 +45,15 @@ func readers(file string) []*os.File {
 			}
 		}
 	} else {
-		log.Fatalln(err)
+		logger.Fatalln(err)
 	}
 
 	files := []*os.File{}
-	log.Debugf("looking for *.gohtml in %s", file)
+	logger.Printf("looking for *.gohtml in %s", file)
 	p := filepath.Join(file, "*.gohtml")
 	all, err := filepath.Glob(p)
 	if err != nil {
-		log.Fatalln(err)
+		logger.Fatalln(err)
 	} else {
 		for _, v := range all {
 			files = append(files, reader(v))
@@ -66,20 +66,20 @@ func readers(file string) []*os.File {
 func writer(file string, stdout bool) *os.File {
 	var fm os.FileMode
 	if stdout {
-		log.Debugf("using stdout")
+		logger.Println("using stdout")
 		return os.Stdout
 	}
 
 	file, err := filepath.Abs(file)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatalln(err)
 	}
 
-	log.Debugf("opening a writer to %s", file)
+	logger.Printf("opening a writer to %s", file)
 	fm, op := 0644, os.O_CREATE|os.O_WRONLY
 	writer, err := os.OpenFile(file, op, fm)
 	if err != nil {
-		log.Fatalln(err)
+		logger.Fatalln(err)
 	}
 
 	return writer

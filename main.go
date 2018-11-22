@@ -5,18 +5,21 @@
 package main
 
 import (
+	"io/ioutil"
+	"os"
+
+	"github.com/envygeeks/envp/logger"
 	"github.com/envygeeks/envp/template"
-	log "github.com/sirupsen/logrus"
 )
 
 /**
  */
 func main() {
 	args := NewFlags().Parse()
+	logger.SetOutput(ioutil.Discard)
 	debug := args.Bool("debug")
-	log.SetLevel(log.WarnLevel)
 	if debug {
-		log.SetLevel(log.DebugLevel)
+		logger.SetOutput(os.Stderr)
 	}
 
 	ttemplate := template.New(debug)

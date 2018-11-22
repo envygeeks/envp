@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/envygeeks/envp/logger"
 )
 
 // EnvExists allows you to check if a var exists
@@ -42,7 +42,7 @@ func (h *Helpers) BoolEnv(s string) bool {
 	if v, ok := os.LookupEnv(s); ok {
 		vv, err := strconv.ParseBool(v)
 		if err != nil {
-			log.Warn(err)
+			logger.Println(err)
 			return false
 		}
 
