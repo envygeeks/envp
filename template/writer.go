@@ -14,6 +14,7 @@ import (
 
 // Writer interface
 type Writer interface {
+	Name() string
 	Close() error
 	io.Writer
 }

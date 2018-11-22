@@ -6,14 +6,22 @@ package logger
 
 import (
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 )
 
 var (
 	normal = log.New(os.Stderr, "", 0)
 	always = log.New(os.Stderr, "", 0)
 )
+
+func init() {
+	if strings.HasSuffix(os.Args[0], ".test") {
+		normal.SetOutput(ioutil.Discard)
+	}
+}
 
 /**
  */

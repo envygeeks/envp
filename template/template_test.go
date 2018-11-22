@@ -12,18 +12,26 @@ import (
 )
 
 func (t *TestReader) Name() string { return t._name }
+func (t *TestWriter) Name() string { return t._name }
 func (t *TestReader) Close() error { return nil }
 func (t *TestWriter) Close() error { return nil }
 
+/**
+ */
 type TestWriter struct {
+	_name string
 	*strings.Builder
 }
 
+/**
+ */
 type TestReader struct {
 	_name string
 	*strings.Reader
 }
 
+/**
+ */
 func TestParse(t *testing.T) {
 	type TestStruct struct {
 		expected    string
