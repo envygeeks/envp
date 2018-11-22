@@ -29,19 +29,18 @@ type Template struct {
 // the entire world to know if they really need to
 // know what's going on for debugging purposes.
 func New(debug bool) *Template {
-	externalTemplate := template.New("envp")
-	helpers.New(externalTemplate)
+	t := template.New("envp")
+	helpers.New(t)
 
 	return &Template{
-		template: externalTemplate,
 		debug:    debug,
+		template: t,
 	}
 }
 
 // Use tells us to use this specific template
-func (t *Template) Use(f string) {
-	f = filepath.Base(f)
-	t.use = f
+func (t *Template) Use(f NamedReader) {
+	t.use = filepath.Base(f.Name())
 }
 
 // ParseFiles parses all your readers
