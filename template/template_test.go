@@ -80,7 +80,7 @@ func TestExec(t *testing.T) {
 		}
 
 		if ts.use != "" {
-			tt.Use(ts.use)
+			tt.Use(tr)
 			expected, actual := ts.name, tt.use
 			assert.Equal(t, expected, actual,
 				ts.description)
