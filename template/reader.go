@@ -12,12 +12,11 @@ import (
 	"github.com/envygeeks/envp/logger"
 )
 
-// NamedReader is a reader with Name()
-// that way it can be a full file, or otherwise
-// just as long as it has Name(), and Read()
-type NamedReader interface {
-	io.Reader
+// Reader interface
+type Reader interface {
+	Close() error
 	Name() string
+	io.Reader
 }
 
 func reader(file string) *os.File {
@@ -30,7 +29,7 @@ func reader(file string) *os.File {
 	return reader
 }
 
-func readers(file string) []*os.File {
+func readers(file string) []Reader {
 	file, err := filepath.Abs(file)
 	if err != nil {
 		logger.Fatalln(err)
@@ -40,7 +39,7 @@ func readers(file string) []*os.File {
 	if err == nil {
 		if !finfo.IsDir() {
 			reader := reader(file)
-			return []*os.File{
+			return []Reader{
 				reader,
 			}
 		}
@@ -48,7 +47,7 @@ func readers(file string) []*os.File {
 		logger.Fatalln(err)
 	}
 
-	files := []*os.File{}
+	files := []Reader{}
 	logger.Printf("looking for *.gohtml in %s", file)
 	p := filepath.Join(file, "*.gohtml")
 	all, err := filepath.Glob(p)
@@ -61,26 +60,4 @@ func readers(file string) []*os.File {
 	}
 
 	return files
-}
-
-func writer(file string, stdout bool) *os.File {
-	var fm os.FileMode
-	if stdout {
-		logger.Println("using stdout")
-		return os.Stdout
-	}
-
-	file, err := filepath.Abs(file)
-	if err != nil {
-		logger.Fatalln(err)
-	}
-
-	logger.Printf("opening a writer to %s", file)
-	fm, op := 0644, os.O_CREATE|os.O_WRONLY
-	writer, err := os.OpenFile(file, op, fm)
-	if err != nil {
-		logger.Fatalln(err)
-	}
-
-	return writer
 }

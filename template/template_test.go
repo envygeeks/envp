@@ -11,8 +11,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func (t *TestReader) Name() string {
-	return t._name
+func (t *TestReader) Name() string { return t._name }
+func (t *TestReader) Close() error { return nil }
+func (t *TestWriter) Close() error { return nil }
+
+type TestWriter struct {
+	*strings.Builder
 }
 
 type TestReader struct {
@@ -114,9 +118,13 @@ func TestWrite(t *testing.T) {
 		}
 
 		tt.Parse(tr)
-		var s strings.Builder
-		tt.Write(tt.Exec(), &s)
-		actual := s.String()
+		tw := &TestWriter{
+			Builder: new(strings.Builder),
+		}
+
+		o := tt.Exec()
+		tt.Write(o, tw)
+		actual := tw.String()
 		assert.Equal(t, ts.expected, actual,
 			ts.description)
 	}

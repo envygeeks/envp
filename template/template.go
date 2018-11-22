@@ -6,9 +6,7 @@ package template
 
 import (
 	"bytes"
-	"io"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"text/template"
 
@@ -39,22 +37,24 @@ func New(debug bool) *Template {
 }
 
 // Use tells us to use this specific template
-func (t *Template) Use(f NamedReader) {
+func (t *Template) Use(f Reader) {
 	t.use = filepath.Base(f.Name())
 }
 
 // ParseFiles parses all your readers
-func (t *Template) ParseFiles(fs []*os.File) []*template.Template {
+func (t *Template) ParseFiles(fs []Reader) []*template.Template {
 	var ts []*template.Template
 	for _, v := range fs {
-		ts = append(ts, t.Parse(v))
+		if r, ok := v.(Reader); ok {
+			ts = append(ts, t.Parse(r))
+		}
 	}
 
 	return ts
 }
 
 // Parse parses the templates.
-func (t *Template) Parse(r NamedReader) *template.Template {
+func (t *Template) Parse(r Reader) *template.Template {
 	logger.Printf("attempting to parse %+v", r.Name())
 	tt := t.template.New(filepath.Base(r.Name()))
 	if b, err := ioutil.ReadAll(r); err != nil {
@@ -107,7 +107,7 @@ func (t *Template) Exec() []byte {
 }
 
 // Write writes to stdout, or a file.
-func (t *Template) Write(b []byte, w io.Writer) int {
+func (t *Template) Write(b []byte, w Writer) int {
 	i, err := w.Write(b)
 	if err != nil {
 		logger.Fatalln(err)
