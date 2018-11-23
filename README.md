@@ -15,25 +15,120 @@ EnvP is a simple CLI util that passes your file through Go-Template with your en
 | -file   | string | the file, or dir |
 
 ## Helpers
-#### `reindent(string)`
+##### reindent
 
-Reindent like `<<~` in Ruby or `String#strip_heredoc` in Rails.  Reindent will strip the shortest indentation across all lines, bringing your text to the edge, while keeping sub-indentation.
+*Reindent like `<<~` in Ruby or `String#strip_heredoc` in Rails.  Reindent will strip the shortest indentation across all lines, bringing your text to the edge, while keeping sub-indentation. This function will also run `trimEdges`, and `trimEmpty` to ensure a clean indent.*
 
 ```
 {{ reindent $myStr }}
 ```
 
-#### `trimEdges(string)`
+##### trimEdges
 
-Strip `\r\n`, `\n`, `\t`, `\s` from the edges of a string (the top, and the bottom (multi-line), left, or right (single line)) leaving a clean string to work with, without all the nonsense spacing.
+*Strip `\r\n`, `\n`, `\t`, `\s` from the edges of a string (the top, and the bottom (multi-line), or left, and right (single line)) leaving a clean string to work with, without all the nonsense spacing.*
 
 ```
 {{ trimEdges $myStr }}
 ```
 
+##### indentedTemplate
+
+*Pulls a template, and runs `reindent` on it, returning the cleaned up template for your golden template to use. **Since this is not a builtin you can also capture this to a variable***
+
+```
+{{- define myTemplate -}}
+  1
+    2
+    3
+  4
+{{- end }}
+```
+
+```
+{{ indentedTemplate "myTemplate" }}
+```
+
+```
+1
+  2
+  3
+4
+```
+
+##### trimmedTemplate
+
+*Pulls a template, and runs `trimEdges`, and `trimEmpty` on it, returning the cleaned up template for your golden template to use. **Since this is not a builtin you can also capture this to a variable***
+
+```
+{{- define myTemplate -}}
+
+
+  1
+    2
+    3
+  4
+
+
+{{- end }}
+```
+
+```
+{{ trimmedTemplate "myTemplate" }}
+```
+
+```
+  1
+    2
+    3
+  4
+```
+
+##### trimEmpty
+
+*Trim a string's empty lines of space, and only of space, leaving just a truly blank `\n` for you to work with, this is particularly useful for reindenting, where we need to strip that so it doesn't affect how we detect indentation.*
+
+```
+{{ myStr := "Hello\n  \nWorld"
+{{ trimEmpty $myStr }}
+```
+
+```
+Hello
+
+World
+```
+
+##### indent
+
+*Strip all indentation to the edge, and then indent to n<int> you send to us, allowing you to deeply indent within define, or in configuration files in a `{}` or otherwise.*
+
+```
+{{ define "myTemplate" }}
+  1
+    2
+  3
+{{ end }}
+```
+
+```
+{{ indent (templateString "myTemplate") 4 }}
+```
+
+```
+    1
+      2
+    3
+```
+
+##### boolEnv
+##### templateString
+##### templateExists
+##### envExists
+##### env
+
 ### Stdlib
 
-* `trim(s, cut string)` -> https://golang.org/pkg/strings/#Trim
+* `trim` -> https://golang.org/pkg/strings/#Trim
 
 ## An Example
 
