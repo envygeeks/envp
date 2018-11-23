@@ -3,16 +3,22 @@ set -ex
 
 rm -rf   binaries
 mkdir -p binaries
+
 env GOOS=linux   GOARCH=amd64 go build -v -ldflags '-s -w' -o binaries/envp-linux-amd64
+env GOOS=darwin  GOARCH=amd64 go build -v -ldflags '-s -w' -o binaries/envp-darwin-amd64
+env GOOS=windows GOARCH=amd64 go build -v -ldflags '-s -w' -o binaries/envp-windows-amd64
+env GOOS=openbsd GOARCH=amd64 go build -v -ldflags '-s -w' -o binaries/envp-openbsd-amd64
+env GOOS=freebsd GOARCH=amd64 go build -v -ldflags '-s -w' -o binaries/envp-freebsd-amd64
 env GOOS=linux   GOARCH=arm64 go build -v -ldflags '-s -w' -o binaries/envp-linux-arm64
 env GOOS=linux   GOARCH=arm   go build -v -ldflags '-s -w' -o binaries/envp-linux-arm
+env GOOS=openbsd GOARCH=arm   go build -v -ldflags '-s -w' -o binaries/envp-openbsd-arm
+env GOOS=freebsd GOARCH=arm   go build -v -ldflags '-s -w' -o binaries/envp-freebsd-arm
 env GOOS=linux   GOARCH=386   go build -v -ldflags '-s -w' -o binaries/envp-linux-i386
-env GOOS=windows GOARCH=amd64 go build -v -ldflags '-s -w' -o binaries/envp-windows-amd64
+env GOOS=darwin  GOARCH=386   go build -v -ldflags '-s -w' -o binaries/envp-darwin-i386
 env GOOS=windows GOARCH=386   go build -v -ldflags '-s -w' -o binaries/envp-windows-i386
-env GOOS=darwin  GOARCH=amd64 go build -v -ldflags '-s -w' -o binaries/envp-macos-amd64
-env GOOS=darwin  GOARCH=386   go build -v -ldflags '-s -w' -o binaries/envp-macos-i386
+env GOOS=openbsd GOARCH=386   go build -v -ldflags '-s -w' -o binaries/envp-openbsd-i386
+env GOOS=freebsd GOARCH=386   go build -v -ldflags '-s -w' -o binaries/envp-freebsd-i386
 
 if [[ "$SIGN" != "false" ]] && [[ "$MACOS_DEVELOPER_ID" ]]; then
-  codesign -f -s "$MACOS_DEVELOPER_ID" binaries/envp-macos-amd64
-  codesign -f -s "$MACOS_DEVELOPER_ID" binaries/envp-macos-i386
+  codesign -f -s "$MACOS_DEVELOPER_ID" binaries/envp-darwin-*
 fi
