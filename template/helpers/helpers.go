@@ -5,7 +5,11 @@
 package helpers
 
 import (
+	"crypto/rand"
 	"fmt"
+	"io"
+	"log"
+	"math/big"
 	"os"
 	"regexp"
 	"strconv"
@@ -159,6 +163,41 @@ func (h *Helpers) TemplateExists(s string) bool {
 	return false
 }
 
+var (
+	letters = []rune(
+		"01234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+	)
+)
+
+func rngCheck() {
+	buf := make([]byte, 1)
+	_, err := io.ReadFull(rand.Reader, buf)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+// RandPass generates a password using
+// cryptographically derived random numbers
+func (h *Helpers) RandomPassword(n uint) string {
+	rngCheck()
+
+	l, b := int64(len(letters)), make([]rune, n)
+	for i := range b {
+		n, err := rand.Int(rand.Reader, big.NewInt(l))
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		nn := n.Int64()
+		ll := letters[nn]
+		b[i] = ll
+	}
+
+	return string(b)
+}
+
+// New creates a new Funcs, and registers them
 func New(t *template.Template) *Helpers {
 	return (&Helpers{
 		template: t,
@@ -173,6 +212,7 @@ func (h *Helpers) RegisterFuncs() *Helpers {
 		"chomp":               strings.Trim,
 		"indent":              h.Indent,
 		"addSpace":            h.AddSpace,
+		"randomPassword":      h.RandomPassword,
 		"templateString":      h.TemplateString,
 		"strippedTemplate":    h.StrippedTemplate,
 		"fixIndentedTemplate": h.FixIndentedTemplate,

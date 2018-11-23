@@ -327,3 +327,10 @@ func TestTemplateExists(t *testing.T) {
 			ts.description)
 	}
 }
+
+func TestRandomPassword(t *testing.T) {
+	h := New(template.New("envp"))
+	actual := h.RandomPassword(12)
+	assert.Equal(t, 12, len(actual))
+	assert.NotNil(t, actual)
+}

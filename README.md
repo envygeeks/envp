@@ -248,6 +248,14 @@ hello {
 {{ env [key] }}
 ```
 
+### randomPassword
+
+*Generate an alphanumeric password using cryptographically derived random numbers.*
+
+```
+{{ randomPassword [length] }}
+```
+
 ## An Example
 
 Given you did
