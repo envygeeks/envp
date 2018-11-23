@@ -5,7 +5,7 @@
 
 # EnvP
 
-EnvP is a simple CLI util that passes your file through Go-Template with your environment, allowing you to do more advanced configurations in things like Docker without much effort.  It also provides several helps that will aid you in this task, and make your life generally easy.
+EnvP is a simple CLI util that passes your file through [golang/Template](https://golang.org/pkg/text/template) with your environment, allowing you to do more advanced configurations in things like Docker without very much effort.  It also provides several helpers that will aid in this task, and make your life generally easy.
 
 ## Usage
 
@@ -13,6 +13,15 @@ EnvP is a simple CLI util that passes your file through Go-Template with your en
 |------|------|-------------|
 | -output | string | the file to output to |
 | -file   | string | the file, or dir |
+
+```
+Usage of envp:
+  -file string the file, or dir
+  -output string the file to write to
+  -debug debug output
+```
+
+*Leaving `-output` empty will print the final result to stdout, this is really meant for testing before you make commits but can be used any way you wish.  As well, if you set `-file` to a directory, it will glob for `.gohtml` (even if it's gotxt)*
 
 ## Helpers
 ### reindent
@@ -88,14 +97,7 @@ EnvP is a simple CLI util that passes your file through Go-Template with your en
 *Trim a string's empty lines of space, and only of space, leaving just a truly blank `\n` for you to work with, this is particularly useful for reindenting, where we need to strip that so it doesn't affect how we detect indentation.*
 
 ```
-{{ myStr := "Hello\n  \nWorld"
 {{ trimEmpty $myStr }}
-```
-
-```
-Hello
-
-World
 ```
 
 ### indent
@@ -103,21 +105,7 @@ World
 *Strip all indentation to the edge, and then indent to n<int> you send to us, allowing you to deeply indent within define, or in configuration files in a `{}` or otherwise.*
 
 ```
-{{ define "myTemplate" }}
-  1
-    2
-  3
-{{ end }}
-```
-
-```
-{{ indent (templateString "myTemplate") 4 }}
-```
-
-```
-    1
-      2
-    3
+{{ indent $myStr 4 }}
 ```
 
 ### boolEnv
