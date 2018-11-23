@@ -11,26 +11,29 @@ EnvP is a simple CLI util that passes your file through Go-Template with your en
 
 | Flag | Type | Description |
 |------|------|-------------|
-| -glob   | bool   | search, and use a dir full of `*.gohtml` |
-| -stdout | bool   | Print to stdout, instead of write |
 | -output | string | the file to output to |
 | -file   | string | the file, or dir |
 
 ## Helpers
+#### `reindent(string)`
 
-| Helper | Description |
-| ------ | ----------- |
-| reindent | Reindent like `<<~` in Ruby |
-| trimEdges | Trim "\n" or "\r\n" from the edges |
-| trim | Trim a string of left, and right whitespace |
-| indentedTemplate | Pull a template, and reindent it |
-| trimmedTemplate | runs `trimEmpty`, and `trimEdges` on your template |
-| trimEmpty | Trims empty lines with nothing but space to only `^$\n` |
-| boolEnv | Pull an env var as a bool: 1/true, 0/false |
-| templateString | fetch a template to a string |
-| templateExists | Check if a template exists |
-| envExists | Check if an env var exists |
-| env | Pull an env var as a string |
+Reindent like `<<~` in Ruby or `String#strip_heredoc` in Rails.  Reindent will strip the shortest indentation across all lines, bringing your text to the edge, while keeping sub-indentation.
+
+```
+{{ reindent $myStr }}
+```
+
+#### `trimEdges(string)`
+
+Strip `\r\n`, `\n`, `\t`, `\s` from the edges of a string (the top, and the bottom (multi-line), left, or right (single line)) leaving a clean string to work with, without all the nonsense spacing.
+
+```
+{{ trimEdges $myStr }}
+```
+
+### Stdlib
+
+* `trim(s, cut string)` -> https://golang.org/pkg/strings/#Trim
 
 ## An Example
 
