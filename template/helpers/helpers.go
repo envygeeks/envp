@@ -78,25 +78,45 @@ const (
 	preindentRegex = `(?m)^[ \t]+`
 )
 
+func indent(h *Helpers, s string, size int) string {
+	re := regexp.MustCompile(preindentRegex)
+	s = h.TrimEmpty(h.TrimEdges(s))
+	cSize := -1
+
+	for _, v := range re.FindAllString(s, -1) {
+		if l := len(v); cSize == -1 || l < cSize {
+			cSize = l
+			continue
+		}
+	}
+
+	if cSize > -1 {
+		re := regexp.MustCompile(fmt.Sprintf(indentRegex, cSize))
+		if size > -1 {
+			i := strings.Repeat(" ", size)
+			return re.ReplaceAllString(
+				s, i)
+		}
+
+		return re.ReplaceAllString(s, "")
+	}
+
+	return s
+}
+
 // Reindent takes a string, and strips the
 // indention to the edge, like Rails #strip_heredoc
 // or Ruby std <<~, it also strips blank lines on
 // the top and on the bottom, for swift alignment
 func (h *Helpers) Reindent(s string) string {
-	s, indent := h.TrimEdges(s), -1
-	re := regexp.MustCompile(rdRE)
-	for _, v := range re.FindAllString(s, -1) {
-		if l := len(v); indent == -1 || l < indent {
-			indent = l
-		}
-	}
+	o := indent(h, s, -1)
+	return o
+}
 
-	if indent > -1 {
-		re := regexp.MustCompile(fmt.Sprintf(rrRE, indent))
-		s = re.ReplaceAllString(s, "")
-	}
-
-	return s
+// Indent allows for a custom indent.
+func (h *Helpers) Indent(s string, size uint) string {
+	o := indent(h, s, int(size))
+	return o
 }
 
 // TrimEmpty strips empty lines of any
@@ -188,6 +208,7 @@ func (h *Helpers) register() *Helpers {
 		"trimEdges":        h.TrimEdges,
 		"trimEmpty":        h.TrimEmpty,
 		"reindent":         h.Reindent,
+		"indent":           h.Indent,
 		"space":            h.Space,
 	})
 

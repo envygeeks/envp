@@ -172,6 +172,13 @@ func TestReindent(t *testing.T) {
 	assert.Equal(t, expected,
 		actual)
 }
+func TestIndent(t *testing.T) {
+	h := New(template.New("envp"))
+	input, expected := "\n\n\t1\n\t  2\n\t3", "  1\n    2\n  3"
+	actual := h.Indent(input, 2)
+	assert.Equal(t, expected,
+		actual)
+}
 
 func TestTrimEmpty(t *testing.T) {
 	h := New(template.New("envp"))
