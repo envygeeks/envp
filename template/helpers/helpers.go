@@ -22,35 +22,6 @@ type Helpers struct {
 	template *template.Template
 }
 
-// New creates a new Funcs
-func New(t *template.Template) *Helpers {
-	return (&Helpers{
-		template: t,
-	}).register()
-}
-
-// Register registers the funcs
-func (h *Helpers) register() *Helpers {
-	logger.Println("registering all the helpers")
-	h.template.Funcs(template.FuncMap{
-		"trim":             strings.Trim,
-		"split":            strings.Split,
-		"boolEnv":          h.BoolEnv,
-		"envExists":        h.EnvExists,
-		"env":              h.Env,
-		"reindent":         h.Reindent,
-		"trimEmpty":        h.TrimEmpty,
-		"trimEdges":        h.TrimEdges,
-		"space":            h.Space,
-		"templateString":   h.TemplateString,
-		"trimmedTemplate":  h.TrimmedTemplate,
-		"indentedTemplate": h.IndentedTemplate,
-		"templateExists":   h.TemplateExists,
-	})
-
-	return h
-}
-
 // EnvExists allows you to check if a var exists
 // in your current environment, we do not alter it so
 // make sure you use FULLCAP if necessary.
@@ -101,10 +72,10 @@ func (h *Helpers) Space(s string, n int) string {
 }
 
 const (
-	elRE = `(?m)^[ \t]+$`
-	rrRE = `(?m)^[ \t]{%d}`
-	teRE = `(?m)\A[ \t]*$[\r\n]*|[\r\n]+[ \t]*\z`
-	rdRE = `(?m)^[ \t]+`
+	indentRegex    = `(?m)^[ \t]{%d}`
+	trimEdgesRegex = `(?m)\A[ \t]*$[\r\n]*|[\r\n]+[ \t]*\z`
+	trimEmptyRegex = `(?m)^[ \t]+$`
+	preindentRegex = `(?m)^[ \t]+`
 )
 
 // Reindent takes a string, and strips the
@@ -132,16 +103,18 @@ func (h *Helpers) Reindent(s string) string {
 // space that is pushed through by templating
 // allowing you to work with simply \n
 func (h *Helpers) TrimEmpty(s string) string {
-	re := regexp.MustCompile(elRE)
-	return re.ReplaceAllString(s, "")
+	re := regexp.MustCompile(trimEmptyRegex)
+	s = re.ReplaceAllString(s, "")
+	return s
 }
 
 // TrimEdges trims empty lines on the
 // top and on the bottom of a string so that you
 // can do something close to Ruby's <<~
 func (h *Helpers) TrimEdges(s string) string {
-	re := regexp.MustCompile(teRE)
-	return re.ReplaceAllString(s, "")
+	re := regexp.MustCompile(trimEdgesRegex)
+	s = re.ReplaceAllString(s, "")
+	return s
 }
 
 // TemplateString allows you to pull a template
@@ -167,7 +140,8 @@ func (h *Helpers) TemplateString(s string) string {
 // should generally give you a cleaner template output
 // that is more suited to configuration files.
 func (h *Helpers) TrimmedTemplate(s string) string {
-	return h.TrimEmpty(h.TrimEdges(h.TemplateString(s)))
+	s = h.TrimEmpty(h.TrimEdges(h.TemplateString(s)))
+	return s
 }
 
 // IndentedTemplate reindents, and outs a string
@@ -175,7 +149,8 @@ func (h *Helpers) TrimmedTemplate(s string) string {
 // you end up with a clean, and indented template
 // for human readable configuration files.
 func (h *Helpers) IndentedTemplate(s string) string {
-	return h.Reindent(h.TrimmedTemplate(s))
+	s = h.Reindent(h.TrimmedTemplate(s))
+	return s
 }
 
 // TemplateExists allows you to check if a
@@ -188,4 +163,33 @@ func (h *Helpers) TemplateExists(s string) bool {
 	}
 
 	return false
+}
+
+// New creates a new Funcs
+func New(t *template.Template) *Helpers {
+	return (&Helpers{
+		template: t,
+	}).register()
+}
+
+// Register registers the funcs
+func (h *Helpers) register() *Helpers {
+	logger.Println("registering all the helpers")
+	h.template.Funcs(template.FuncMap{
+		"split":            strings.Split,
+		"trim":             strings.Trim,
+		"env":              h.Env,
+		"boolEnv":          h.BoolEnv,
+		"envExists":        h.EnvExists,
+		"trimmedTemplate":  h.TrimmedTemplate,
+		"indentedTemplate": h.IndentedTemplate,
+		"templateString":   h.TemplateString,
+		"templateExists":   h.TemplateExists,
+		"trimEdges":        h.TrimEdges,
+		"trimEmpty":        h.TrimEmpty,
+		"reindent":         h.Reindent,
+		"space":            h.Space,
+	})
+
+	return h
 }
