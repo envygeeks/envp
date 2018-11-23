@@ -50,11 +50,6 @@ var (
 			Default:     "",
 		},
 		Bool{
-			Name:        "stdout",
-			Description: "print to stdout",
-			Default:     false,
-		},
-		Bool{
 			Default:     false,
 			Description: "debug output",
 			Name:        "debug",

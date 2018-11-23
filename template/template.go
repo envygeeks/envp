@@ -125,9 +125,9 @@ func (t *Template) Write(b []byte, w Writer) int {
 	return i
 }
 
-func writer(file string, stdout bool) *os.File {
+func writer(file string) *os.File {
 	var fm os.FileMode
-	if stdout {
+	if file == "" {
 		logger.Println("using stdout")
 		return os.Stdout
 	}
@@ -200,8 +200,8 @@ func readers(file string) []Reader {
 // Open opens all the readers, and writers
 // This is an optional method as you can open your
 // own in anyway you wish to, and pass it.
-func Open(r, w string, stdout bool) (_readers []Reader, _writer Writer) {
-	return readers(r), writer(w, stdout)
+func Open(r, w string) (_readers []Reader, _writer Writer) {
+	return readers(r), writer(w)
 }
 
 /**

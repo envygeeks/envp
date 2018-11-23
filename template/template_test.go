@@ -146,7 +146,7 @@ func TestOpen(t *testing.T) {
 	w, _ := afero.TempFile(fs, "", "test-open-returns-stdout")
 	defer func() { r.Close(); fs.Remove(r.Name()) }()
 	defer func() { w.Close(); fs.Remove(w.Name()) }()
-	rs, ws := Open(r.Name(), w.Name(), true)
+	rs, ws := Open(r.Name(), w.Name())
 	assert.NotEmpty(t, rs)
 	assert.NotNil(t, ws)
 }

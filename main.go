@@ -24,8 +24,8 @@ func main() {
 	}
 
 	ttemplate := template.New(debug)
-	file, output, stdout := args.String("file"), args.String("output"), args.Bool("stdout")
-	readers, writer := template.Open(file, output, stdout)
+	file, output := args.String("file"), args.String("output")
+	readers, writer := template.Open(file, output)
 	defer template.Close(readers, writer)
 	ttemplate.ParseFiles(readers)
 
