@@ -15,16 +15,14 @@ import (
 	"github.com/envygeeks/envp/logger"
 )
 
-// Helpers provides the struct that holds
-// the template, for functions that require such
-// things, we use store it.
+// Helpers holds the template
+// We use it for some template funcs
+// Some don't use it at all.
 type Helpers struct {
 	template *template.Template
 }
 
 // EnvExists allows you to check if a var exists
-// in your current environment, we do not alter it so
-// make sure you use FULLCAP if necessary.
 func (h *Helpers) EnvExists(s string) bool {
 	s = strings.ToUpper(s)
 	if _, ok := os.LookupEnv(s); ok {
@@ -34,7 +32,7 @@ func (h *Helpers) EnvExists(s string) bool {
 	return false
 }
 
-// Env allows you to pull out a string env var
+// Env allows you to pull out a string var
 func (h *Helpers) Env(s string) string {
 	s = strings.ToUpper(s)
 	if v, ok := os.LookupEnv(s); ok {
@@ -44,9 +42,7 @@ func (h *Helpers) Env(s string) string {
 	return ""
 }
 
-// BoolEnv allows you to pull out a env var as a
-// bool, following the same rules as strconv.ParseBool
-// where 1, true are true, and all else is false
+// BoolEnv allows you to pull out a var as bool
 func (h *Helpers) BoolEnv(s string) bool {
 	s = strings.ToUpper(s)
 	if v, ok := os.LookupEnv(s); ok {
@@ -62,27 +58,22 @@ func (h *Helpers) BoolEnv(s string) bool {
 	return false
 }
 
-// Space adds a space to the beginning of
-// a string this way you can {{- -}} compress
-// lines, and still have a space
-func (h *Helpers) Space(s string, n int) string {
+// AddSpace adds a space to the beginning of a string
+func (h *Helpers) AddSpace(s string, n int) string {
 	s = strings.TrimSpace(s)
 	space := strings.Repeat(" ", n)
 	return space + s
 }
 
 const (
-	indentRegex    = `(?m)^[ \t]{%d}`
-	trimEdgesRegex = `(?m)\A[ \t]*$[\r\n]*|[\r\n]+[ \t]*\z`
-	trimEmptyRegex = `(?m)^[ \t]+$`
-	preindentRegex = `(?m)^[ \t]+`
+	indentRegex     = `(?m)^[ \t]{%d}`
+	stripEdgesRegex = `(?m)\A[ \t]*$[\r\n]*|[\r\n]+[ \t]*\z`
+	stripEmptyRegex = `(?m)^[ \t]+$`
+	preindentRegex  = `(?m)^[ \t]+`
 )
 
 func indent(h *Helpers, s string, size int) string {
-	re := regexp.MustCompile(preindentRegex)
-	s = h.TrimEmpty(h.TrimEdges(s))
-	cSize := -1
-
+	re, s, cSize := regexp.MustCompile(preindentRegex), h.Strip(s), -1
 	for _, v := range re.FindAllString(s, -1) {
 		if l := len(v); cSize == -1 || l < cSize {
 			cSize = l
@@ -91,7 +82,8 @@ func indent(h *Helpers, s string, size int) string {
 	}
 
 	if cSize > -1 {
-		re := regexp.MustCompile(fmt.Sprintf(indentRegex, cSize))
+		rr := fmt.Sprintf(indentRegex, cSize)
+		re := regexp.MustCompile(rr)
 		if size > -1 {
 			i := strings.Repeat(" ", size)
 			return re.ReplaceAllString(
@@ -104,46 +96,33 @@ func indent(h *Helpers, s string, size int) string {
 	return s
 }
 
-// Reindent takes a string, and strips the
-// indention to the edge, like Rails #strip_heredoc
-// or Ruby std <<~, it also strips blank lines on
-// the top and on the bottom, for swift alignment
-func (h *Helpers) Reindent(s string) string {
+// FixIndentation strips indentation to the edge
+func (h *Helpers) FixIndentation(s string) string {
 	o := indent(h, s, -1)
 	return o
 }
 
-// Indent allows for a custom indent.
+// Indent strips each lines indentation to the
+// edge, and then indents each line to the size you set
 func (h *Helpers) Indent(s string, size uint) string {
 	o := indent(h, s, int(size))
 	return o
 }
 
-// TrimEmpty strips empty lines of any
-// space that is pushed through by templating
-// allowing you to work with simply \n
-func (h *Helpers) TrimEmpty(s string) string {
-	re := regexp.MustCompile(trimEmptyRegex)
-	s = re.ReplaceAllString(s, "")
+// Strip removes empty lines around a string
+func (h *Helpers) Strip(s string) string {
+	re1 := regexp.MustCompile(stripEmptyRegex)
+	re2 := regexp.MustCompile(stripEdgesRegex)
+	s = re1.ReplaceAllString(s, "")
+	s = re2.ReplaceAllString(s, "")
 	return s
 }
 
-// TrimEdges trims empty lines on the
-// top and on the bottom of a string so that you
-// can do something close to Ruby's <<~
-func (h *Helpers) TrimEdges(s string) string {
-	re := regexp.MustCompile(trimEdgesRegex)
-	s = re.ReplaceAllString(s, "")
-	return s
-}
-
-// TemplateString allows you to pull a template
-// and output it as a string into a func or whatever
-// pleases you, this is useful for storing bits of
-// a template into a variable for later.
+// TemplateString pulls a template as a string
 func (h *Helpers) TemplateString(s string) string {
 	if tt := h.template.Lookup(s); tt != nil {
 		var ss strings.Builder
+
 		if err := tt.Execute(&ss, h.template); err != nil {
 			logger.Fatalln(err)
 		}
@@ -156,26 +135,21 @@ func (h *Helpers) TemplateString(s string) string {
 	return ""
 }
 
-// TrimmedTemplate trims the TemplateString, this
-// should generally give you a cleaner template output
-// that is more suited to configuration files.
-func (h *Helpers) TrimmedTemplate(s string) string {
-	s = h.TrimEmpty(h.TrimEdges(h.TemplateString(s)))
+// StrippedTemplate trims empty lines, and edges.
+func (h *Helpers) StrippedTemplate(s string) string {
+	s = h.TemplateString(s)
+	s = h.Strip(s)
 	return s
 }
 
-// IndentedTemplate reindents, and outs a string
-// template, this also runs TrimmedTemplate so that
-// you end up with a clean, and indented template
-// for human readable configuration files.
-func (h *Helpers) IndentedTemplate(s string) string {
-	s = h.Reindent(h.TrimmedTemplate(s))
+// FixIndentedTemplate strips the indentation to the edge
+func (h *Helpers) FixIndentedTemplate(s string) string {
+	s = h.TemplateString(s)
+	s = h.FixIndentation(s)
 	return s
 }
 
-// TemplateExists allows you to check if a
-// template exists inside of the templates, this also
-// works for context based {{ define "name" }}.
+// TemplateExists checks if a template exists
 func (h *Helpers) TemplateExists(s string) bool {
 	logger.Printf("looking for template %s", s)
 	if tt := h.template.Lookup(s); tt != nil {
@@ -185,31 +159,29 @@ func (h *Helpers) TemplateExists(s string) bool {
 	return false
 }
 
-// New creates a new Funcs
 func New(t *template.Template) *Helpers {
 	return (&Helpers{
 		template: t,
-	}).register()
+	}).RegisterFuncs()
 }
 
-// Register registers the funcs
-func (h *Helpers) register() *Helpers {
+// RegisterFuncs registers the funcs
+func (h *Helpers) RegisterFuncs() *Helpers {
 	logger.Println("registering all the helpers")
 	h.template.Funcs(template.FuncMap{
-		"split":            strings.Split,
-		"trim":             strings.Trim,
-		"env":              h.Env,
-		"boolEnv":          h.BoolEnv,
-		"envExists":        h.EnvExists,
-		"trimmedTemplate":  h.TrimmedTemplate,
-		"indentedTemplate": h.IndentedTemplate,
-		"templateString":   h.TemplateString,
-		"templateExists":   h.TemplateExists,
-		"trimEdges":        h.TrimEdges,
-		"trimEmpty":        h.TrimEmpty,
-		"reindent":         h.Reindent,
-		"indent":           h.Indent,
-		"space":            h.Space,
+		"split":               strings.Split,
+		"chomp":               strings.Trim,
+		"indent":              h.Indent,
+		"addSpace":            h.AddSpace,
+		"templateString":      h.TemplateString,
+		"strippedTemplate":    h.StrippedTemplate,
+		"fixIndentedTemplate": h.FixIndentedTemplate,
+		"templateExists":      h.TemplateExists,
+		"fixIndentation":      h.FixIndentation,
+		"envExists":           h.EnvExists,
+		"boolEnv":             h.BoolEnv,
+		"strip":               h.Strip,
+		"env":                 h.Env,
 	})
 
 	return h

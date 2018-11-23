@@ -134,7 +134,7 @@ func TestTemplate__boolEnv(t *testing.T) {
 	}
 }
 
-func TestSpace(t *testing.T) {
+func TestAddSpace(t *testing.T) {
 	h := New(template.New("envp"))
 	type TestStruct struct {
 		expected    string
@@ -159,16 +159,16 @@ func TestSpace(t *testing.T) {
 			expected:    " 1",
 		},
 	} {
-		actual := h.Space(ts.input, 1)
+		actual := h.AddSpace(ts.input, 1)
 		assert.Equal(t, ts.expected, actual,
 			ts.description)
 	}
 }
 
-func TestReindent(t *testing.T) {
+func TestFixIndentation(t *testing.T) {
 	h := New(template.New("envp"))
 	input, expected := "\n\n\t1\n\t  2\n\t3", "1\n  2\n3"
-	actual := h.Reindent(input)
+	actual := h.FixIndentation(input)
 	assert.Equal(t, expected,
 		actual)
 }
@@ -180,22 +180,29 @@ func TestIndent(t *testing.T) {
 		actual)
 }
 
-func TestTrimEmpty(t *testing.T) {
-	h := New(template.New("envp"))
-	input, expected := "1\n        \n2", "1\n\n2"
-	actual := h.TrimEmpty(input)
+func TestStrip(t *testing.T) {
+	type TestStruct struct {
+		expected    string
+		description string
+		input       string
+	}
 
-	assert.Equal(t, expected,
-		actual)
-}
-
-func TestTrimEdges(t *testing.T) {
-	h := New(template.New("envp"))
-	input, expected := "\n\n1\n2\n\n", "1\n2"
-	actual := h.TrimEdges(input)
-
-	assert.Equal(t, expected,
-		actual)
+	for _, ts := range []TestStruct{
+		TestStruct{
+			expected:    "1\n\n2",
+			description: "it works on simple strings",
+			input:       "1\n        \n2",
+		},
+		TestStruct{
+			input:       "\n\n1\n2\n\n",
+			description: "it works on strings with edged space",
+			expected:    "1\n2",
+		},
+	} {
+		actual := New(template.New("envp")).Strip(ts.input)
+		assert.Equal(t, ts.expected, actual,
+			ts.description)
+	}
 }
 
 func TestTemplateString(t *testing.T) {
@@ -222,7 +229,7 @@ func TestTemplateString(t *testing.T) {
 	}
 }
 
-func TestTrimmedTemplate(t *testing.T) {
+func TestStrippedTemplate(t *testing.T) {
 	templateDefinition := "{{ define \"hello\" }}%s{{ end }}"
 	type TestStruct struct {
 		expected    string
@@ -251,13 +258,13 @@ func TestTrimmedTemplate(t *testing.T) {
 		tt.Parse(fmt.Sprintf(templateDefinition, ts.input))
 		h := New(tt)
 
-		actual := h.TrimmedTemplate("hello")
+		actual := h.StrippedTemplate("hello")
 		assert.Equal(t, ts.expected, actual,
 			ts.description)
 	}
 }
 
-func TestIndentedTemplate(t *testing.T) {
+func TestFixIndentedTemplate(t *testing.T) {
 	templateDefinition := "{{ define \"hello\" }}%s{{ end }}"
 	type TestStruct struct {
 		expected    string
@@ -276,7 +283,7 @@ func TestIndentedTemplate(t *testing.T) {
 		tt.Parse(fmt.Sprintf(templateDefinition, ts.input))
 		h := New(tt)
 
-		actual := h.IndentedTemplate("hello")
+		actual := h.FixIndentedTemplate("hello")
 		assert.Equal(t, ts.expected, actual,
 			ts.description)
 	}

@@ -24,99 +24,229 @@ Usage of envp:
 *Leaving `-output` empty will print the final result to stdout, this is really meant for testing before you make commits but can be used any way you wish.  As well, if you set `-file` to a directory, it will glob for `.gohtml` (even if it's gotxt)*
 
 ## Helpers
-### reindent
-
-*Reindent like `<<~` in Ruby or `String#strip_heredoc` in Rails.  Reindent will strip the shortest indentation across all lines, bringing your text to the edge, while keeping sub-indentation. This function will also run `trimEdges`, and `trimEmpty` to ensure a clean indent.*
+### split
 
 ```
-{{ reindent $myStr }}
-```
-
-### trimEdges
-
-*Strip `\r\n`, `\n`, `\t`, `\s` from the edges of a string (the top, and the bottom (multi-line), or left, and right (single line)) leaving a clean string to work with, without all the nonsense spacing.*
-
-```
-{{ trimEdges $myStr }}
-```
-
-### indentedTemplate
-
-*Pulls a template, and runs `reindent` on it, returning the cleaned up template for your golden template to use. **Since this is not a builtin you can also capture this to a variable***
-
-```
-{{- define myTemplate -}}
-  1
-    2
-    3
-  4
-{{- end }}
+{{ split [string] [delim] }}
 ```
 
 ```
-{{ indentedTemplate "myTemplate" }}
+{{ myStr := "1,2,3" }}
+{{ range $_, $e := (split $myStr ",") }}
+  {{ $e }}
+{{ end }}
+```
+
+### chomp
+
+```
+{{ chomp [string] [cutset] }}
 ```
 
 ```
-1
-  2
-  3
-4
-```
-
-### trimmedTemplate
-
-*Pulls a template, and runs `trimEdges`, and `trimEmpty` on it, returning the cleaned up template for your golden template to use. **Since this is not a builtin you can also capture this to a variable***
-
-```
-{{- define myTemplate -}}
-
-
-  1
-    2
-    3
-  4
-
-
-{{- end }}
-```
-
-```
-{{ trimmedTemplate "myTemplate" }}
-```
-
-```
-  1
-    2
-    3
-  4
-```
-
-### trimEmpty
-
-*Trim a string's empty lines of space, and only of space, leaving just a truly blank `\n` for you to work with, this is particularly useful for reindenting, where we need to strip that so it doesn't affect how we detect indentation.*
-
-```
-{{ trimEmpty $myStr }}
+{{ myStr := "hello" }}
+{{ chomp $myStr "o" }}
 ```
 
 ### indent
 
-*Strip all indentation to the edge, and then indent to n<int> you send to us, allowing you to deeply indent within define, or in configuration files in a `{}` or otherwise.*
+*Strips indentation to the edge at the smallest length, and reindents to the specified length.*
 
 ```
-{{ indent $myStr 4 }}
+{{ indent [string] [n] }}
+```
+
+```
+{{ define "myTemplate" }}
+  hello {
+    world
+  }
+{{ end }}
+{{ str := templateString "myTemplate" }}
+{{ indent $str 6 }}
+```
+
+```
+      hello {
+        world
+      }
+```
+
+### addSpace
+
+*Add space to the beginning of a string*
+
+```
+{{ addSpace [string] [int] }}
+```
+
+### templateString
+
+*Get a template as a string that can be manipulated*
+
+```
+{{ templateString [template] }}
+```
+
+```
+{{ define "myTemplate" }}
+  hello {
+    world
+  }
+{{ end }}
+{{ $template := (templateString "myTemplate") }}
+{{ indent $template 8 }}
+```
+
+### strippedTemplate
+
+*Strips lines of empty space, and removes all edge space.*
+
+```
+{{ strippedTemplate [template] }}
+```
+
+```
+{{ define "myTemplate" }}
+  hello {
+    world
+  }
+
+
+
+{{ end }}
+{{ strippedTemplate "myTemplate" }}
+```
+
+```
+  hello {
+    world
+  }
+```
+
+### strip
+
+*Strips lines of empty space, and removes all edge space.*
+
+```
+{{ strip [string] }}
+```
+
+```
+{{ define "myTemplate" }}
+  hello {
+    world
+  }
+
+
+
+{{ end }}
+{{ $myVar := (templateString "myTemplate" }}
+{{ strip $myVar }}
+```
+
+```
+  hello {
+    world
+  }
+```
+
+### fixIndentedTemplate
+
+*Strips indentation to the edge like `String#strip_heredoc` or `<<~STR` in Ruby.*
+
+```
+{{ fixIndentedTemplate [template] }}
+```
+
+```
+{{ define "myTemplate" }}
+  hello {
+    world
+  }
+{{ end }}
+{{ fixIndentedTemplate "myTemplate" }}
+```
+
+```
+hello {
+  world
+}
+```
+
+### templateExists
+
+*Allows you to perform booleans on a template*
+
+```
+{{ templateExists [template] }}
+```
+
+```
+{{ if (templateExists "myTemplate") }}
+  {{ template "myTemplate" }}
+{{ end }}
+```
+
+### fixIndentation
+
+*Strips indentation to the edge like String#strip_heredoc or <<~STR in Ruby.*
+
+```
+{{ fixIndentation [string] }}
+```
+
+```
+{{ define "myTemplate" }}
+  hello {
+    world
+  }
+{{ end }}
+{{ myVar := (templateString "myTemplate") }}
+{{ fixIndentation $myVar }}
+```
+
+```
+hello {
+  world
+}
+```
+
+### envExists
+
+*Lets you check if an environment variable exists.*
+
+```
+{{ envExists [key] }}
+```
+
+```
+{{ if (envExists "key") }}
+  Do Work
+{{ end }}
 ```
 
 ### boolEnv
-### templateString
-### templateExists
-### envExists
+
+*Extracts an environment variable as a boolean.*
+
+```
+{{ boolEnv [key] }}
+```
+
+```
+{{ if (boolEnv "key") }}
+  Do Work
+{{ end }}
+```
+
 ### env
 
-### Stdlib
+*Extracts an environment variable as a string.*
 
-* `trim` -> https://golang.org/pkg/strings/#Trim
+```
+{{ env [key] }}
+```
 
 ## An Example
 
