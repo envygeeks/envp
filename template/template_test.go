@@ -41,27 +41,29 @@ func TestParse(t *testing.T) {
 		name        string
 	}
 
-	for _, ts := range []TestStruct{
+	for _, test := range []TestStruct{
 		TestStruct{
 			expected:    "Hello World",
 			description: "it's not nil",
 			name:        "hello",
 		},
 	} {
-		tt := New(false)
-		tr := &TestReader{
-			Reader: strings.NewReader(ts.expected),
-			_name:  ts.name,
+		var str strings.Builder
+
+		template := New(false)
+		reader := &TestReader{
+			Reader: strings.NewReader(test.expected),
+			_name:  test.name,
 		}
 
-		tt.Parse(tr)
-		var s strings.Builder
-		ttt := tt.template.Lookup(ts.name)
-		if assert.NotNil(t, ttt) {
-			ttt.Execute(&s, "")
-			actual := s.String()
-			assert.Equal(t, ts.expected, actual,
-				ts.description)
+		template.Parse(reader)
+		atemplate := template.template.Lookup(test.name)
+		if assert.NotNil(t, atemplate) {
+			atemplate.Execute(&str, "")
+
+			actual := str.String()
+			assert.Equal(t, test.expected, actual,
+				test.description)
 		}
 	}
 }
@@ -74,7 +76,7 @@ func TestExec(t *testing.T) {
 		use         string
 	}
 
-	for _, ts := range []TestStruct{
+	for _, test := range []TestStruct{
 		TestStruct{
 			expected:    "Hello World: 1",
 			description: "it returns a byte",
@@ -87,22 +89,22 @@ func TestExec(t *testing.T) {
 			use:         "hello-2",
 		},
 	} {
-		tt := New(false)
-		tr := &TestReader{
-			Reader: strings.NewReader(ts.expected),
-			_name:  ts.name,
+		template := New(false)
+		reader := &TestReader{
+			Reader: strings.NewReader(test.expected),
+			_name:  test.name,
 		}
 
-		if ts.use != "" {
-			tt.Use(tr)
-			expected, actual := ts.name, tt.use
+		if test.use != "" {
+			template.Use(reader)
+			expected, actual := test.name, template.use
 			assert.Equal(t, expected, actual,
-				ts.description)
+				test.description)
 		}
 
-		tt.Parse(tr)
-		actual := string(tt.Exec())
-		assert.Equal(t, ts.expected,
+		template.Parse(reader)
+		actual := string(template.Exec())
+		assert.Equal(t, test.expected,
 			actual)
 	}
 }
@@ -114,41 +116,41 @@ func TestWrite(t *testing.T) {
 		name        string
 	}
 
-	for _, ts := range []TestStruct{
+	for _, test := range []TestStruct{
 		TestStruct{
 			expected:    "hello",
 			description: "it writes the template",
 			name:        "test1",
 		},
 	} {
-		tt := New(false)
-		tr := &TestReader{
-			Reader: strings.NewReader(ts.expected),
-			_name:  ts.name,
+		template := New(false)
+		reader := &TestReader{
+			Reader: strings.NewReader(test.expected),
+			_name:  test.name,
 		}
 
-		tt.Parse(tr)
-		tw := &TestWriter{
+		template.Parse(reader)
+		writer := &TestWriter{
 			Builder: new(strings.Builder),
 		}
 
-		o := tt.Exec()
-		tt.Write(o, tw)
-		actual := tw.String()
-		assert.Equal(t, ts.expected, actual,
-			ts.description)
+		out := template.Exec()
+		template.Write(out, writer)
+		actual := writer.String()
+		assert.Equal(t, test.expected, actual,
+			test.description)
 	}
 }
 
 func TestOpen(t *testing.T) {
 	fs := afero.NewOsFs()
-	r, _ := afero.TempFile(fs, "", "test-open-returns-stdout")
-	w, _ := afero.TempFile(fs, "", "test-open-returns-stdout")
-	defer func() { r.Close(); fs.Remove(r.Name()) }()
-	defer func() { w.Close(); fs.Remove(w.Name()) }()
-	rs, ws := Open(r.Name(), w.Name())
-	assert.NotEmpty(t, rs)
-	assert.NotNil(t, ws)
+	readf, _ := afero.TempFile(fs, "", "test-open-returns-stdout")
+	writf, _ := afero.TempFile(fs, "", "test-open-returns-stdout")
+	defer func() { readf.Close(); fs.Remove(readf.Name()) }()
+	defer func() { writf.Close(); fs.Remove(writf.Name()) }()
+	reader, writer := Open(readf.Name(), writf.Name())
+	assert.NotEmpty(t, reader)
+	assert.NotNil(t, writer)
 }
 
 /**
@@ -175,14 +177,14 @@ func (w *TestCloseW) Close() (e error) {
 
 func TestClose(t *testing.T) {
 	fs := new(afero.MemMapFs)
-	r, _ := afero.TempFile(fs, "", "test-close")
-	w, _ := afero.TempFile(fs, "", "test-close")
-	defer func() { r.Close(); fs.Remove(r.Name()) }()
-	defer func() { w.Close(); fs.Remove(w.Name()) }()
-	wt := &TestCloseW{Writer: r}
-	rt := &TestCloseR{Reader: w}
-	Close([]Reader{rt}, wt)
+	readf, _ := afero.TempFile(fs, "", "test-close")
+	writf, _ := afero.TempFile(fs, "", "test-close")
+	defer func() { readf.Close(); fs.Remove(readf.Name()) }()
+	defer func() { writf.Close(); fs.Remove(writf.Name()) }()
+	writer := &TestCloseW{Writer: readf}
+	reader := &TestCloseR{Reader: writf}
+	Close([]Reader{reader}, writer)
 
-	assert.True(t, wt.CRan)
-	assert.True(t, rt.CRan)
+	assert.True(t, writer.CRan)
+	assert.True(t, reader.CRan)
 }

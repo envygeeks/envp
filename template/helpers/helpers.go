@@ -50,13 +50,13 @@ func (h *Helpers) Env(s string) string {
 func (h *Helpers) BoolEnv(s string) bool {
 	s = strings.ToUpper(s)
 	if v, ok := os.LookupEnv(s); ok {
-		vv, err := strconv.ParseBool(v)
+		obool, err := strconv.ParseBool(v)
 		if err != nil {
 			logger.Println(err)
 			return false
 		}
 
-		return vv
+		return obool
 	}
 
 	return false
@@ -77,24 +77,25 @@ const (
 )
 
 func indent(h *Helpers, s string, size int) string {
-	re, s, cSize := regexp.MustCompile(preindentRegex), h.Strip(s), -1
+	re, s, indent := regexp.MustCompile(preindentRegex), h.Strip(s), -1
 	for _, v := range re.FindAllString(s, -1) {
-		if l := len(v); cSize == -1 || l < cSize {
-			cSize = l
+		if l := len(v); indent == -1 || l < indent {
+			indent = l
 			continue
 		}
 	}
 
-	if cSize > -1 {
-		rr := fmt.Sprintf(indentRegex, cSize)
-		re := regexp.MustCompile(rr)
+	if indent > -1 {
+		repeated := fmt.Sprintf(indentRegex, indent)
+		re := regexp.MustCompile(repeated)
 		if size > -1 {
 			i := strings.Repeat(" ", size)
-			return re.ReplaceAllString(
-				s, i)
+			replaced := re.ReplaceAllString(s, i)
+			return replaced
 		}
 
-		return re.ReplaceAllString(s, "")
+		replaced := re.ReplaceAllString(s, "")
+		return replaced
 	}
 
 	return s
@@ -102,15 +103,15 @@ func indent(h *Helpers, s string, size int) string {
 
 // FixIndentation strips indentation to the edge
 func (h *Helpers) FixIndentation(s string) string {
-	o := indent(h, s, -1)
-	return o
+	out := indent(h, s, -1)
+	return out
 }
 
 // Indent strips each lines indentation to the
 // edge, and then indents each line to the size you set
 func (h *Helpers) Indent(s string, size uint) string {
-	o := indent(h, s, int(size))
-	return o
+	out := indent(h, s, int(size))
+	return out
 }
 
 // Strip removes empty lines around a string
@@ -124,19 +125,48 @@ func (h *Helpers) Strip(s string) string {
 
 // TemplateString pulls a template as a string
 func (h *Helpers) TemplateString(s string) string {
-	if tt := h.template.Lookup(s); tt != nil {
-		var ss strings.Builder
+	if template := h.template.Lookup(s); template != nil {
+		var str strings.Builder
 
-		if err := tt.Execute(&ss, h.template); err != nil {
+		if err := template.Execute(&str, h.template); err != nil {
 			logger.Fatalln(err)
 		}
 
-		return ss.String()
+		out := str.String()
+		return out
 	}
 
 	// Bad template given.
 	logger.Fatalf("Unable to find %s", s)
 	return ""
+}
+
+// IndentedTemplate indents a template.
+func (h *Helpers) IndentedTemplate(s string, size uint) string {
+	s = h.TemplateString(s)
+	s = h.Indent(s, size)
+	return s
+}
+
+// TemplateWithNewLine returns a template with
+// a newline if the template returned is not empty
+func (h *Helpers) TemplateWithNewLine(s string) string {
+	s = h.FixIndentedTemplate(s)
+	if s != "" {
+		return "\n" + s
+	}
+
+	return s
+}
+
+// IndentedTemplateWithNewLine adds a newline, and indents
+func (h *Helpers) IndentedTemplateWithNewLine(s string, size uint) string {
+	s = h.IndentedTemplate(s, size)
+	if s != "" {
+		return "\n" + s
+	}
+
+	return s
 }
 
 // StrippedTemplate trims empty lines, and edges.
@@ -156,7 +186,7 @@ func (h *Helpers) FixIndentedTemplate(s string) string {
 // TemplateExists checks if a template exists
 func (h *Helpers) TemplateExists(s string) bool {
 	logger.Printf("looking for template %s", s)
-	if tt := h.template.Lookup(s); tt != nil {
+	if template := h.template.Lookup(s); template != nil {
 		return true
 	}
 
@@ -164,9 +194,8 @@ func (h *Helpers) TemplateExists(s string) bool {
 }
 
 var (
-	letters = []rune(
-		"01234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-	)
+	letters    = []rune("01234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	lettersLen = int64(len(letters))
 )
 
 func rngCheck() {
@@ -177,51 +206,54 @@ func rngCheck() {
 	}
 }
 
-// RandPass generates a password using
+// RandomPassword generates a password with
 // cryptographically derived random numbers
-func (h *Helpers) RandomPassword(n uint) string {
+func (h *Helpers) RandomPassword(size uint) string {
 	rngCheck()
 
-	l, b := int64(len(letters)), make([]rune, n)
-	for i := range b {
-		n, err := rand.Int(rand.Reader, big.NewInt(l))
+	rune := make([]rune, size)
+	for i := range rune {
+		n, err := rand.Int(rand.Reader, big.NewInt(lettersLen))
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		nn := n.Int64()
-		ll := letters[nn]
-		b[i] = ll
+		idx := n.Int64()
+		letter := letters[idx]
+		rune[i] = letter
 	}
 
-	return string(b)
+	out := string(rune)
+	return out
 }
 
 // New creates a new Funcs, and registers them
 func New(t *template.Template) *Helpers {
-	return (&Helpers{
-		template: t,
-	}).RegisterFuncs()
+	helpers := (&Helpers{template: t}).Register()
+	return helpers
 }
 
-// RegisterFuncs registers the funcs
-func (h *Helpers) RegisterFuncs() *Helpers {
+// Register registers the funcs
+func (h *Helpers) Register() *Helpers {
 	logger.Println("registering all the helpers")
 	h.template.Funcs(template.FuncMap{
-		"split":               strings.Split,
-		"chomp":               strings.Trim,
-		"indent":              h.Indent,
-		"addSpace":            h.AddSpace,
-		"randomPassword":      h.RandomPassword,
-		"templateString":      h.TemplateString,
-		"strippedTemplate":    h.StrippedTemplate,
-		"fixIndentedTemplate": h.FixIndentedTemplate,
-		"templateExists":      h.TemplateExists,
-		"fixIndentation":      h.FixIndentation,
-		"envExists":           h.EnvExists,
-		"boolEnv":             h.BoolEnv,
-		"strip":               h.Strip,
-		"env":                 h.Env,
+		"split":                       strings.Split,
+		"chomp":                       strings.Trim,
+		"indent":                      h.Indent,
+		"addSpace":                    h.AddSpace,
+		"random_password":             h.RandomPassword,
+		"templateString":              h.TemplateString,
+		"strippedTemplate":            h.StrippedTemplate,
+		"fixIndentedTemplate":         h.FixIndentedTemplate,
+		"indentedTemplateWithNewline": h.IndentedTemplateWithNewLine,
+		"templateWithNewline":         h.TemplateWithNewLine,
+		"indentedTemplate":            h.IndentedTemplate,
+		"templateExists":              h.TemplateExists,
+		"fixIndentation":              h.FixIndentation,
+		"envExists":                   h.EnvExists,
+		"bool_env":                    h.BoolEnv,
+		"strip":                       h.Strip,
+		"env":                         h.Env,
 	})
 
 	return h

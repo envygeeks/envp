@@ -29,12 +29,11 @@ type Template struct {
 // the entire world to know if they really need to
 // know what's going on for debugging purposes.
 func New(debug bool) *Template {
-	t := template.New("envp")
-	helpers.New(t)
-
+	template := template.New("envp")
+	helpers.New(template)
 	return &Template{
+		template: template,
 		debug:    debug,
-		template: t,
 	}
 }
 
@@ -44,68 +43,69 @@ func (t *Template) Use(f Reader) {
 }
 
 // ParseFiles parses all your readers
-func (t *Template) ParseFiles(fs []Reader) []*template.Template {
-	var ts []*template.Template
-	for _, v := range fs {
-		if r, ok := v.(Reader); ok {
-			ts = append(ts, t.Parse(r))
+func (t *Template) ParseFiles(readers []Reader) []*template.Template {
+	var templates []*template.Template
+
+	for _, v := range readers {
+		if reader, ok := v.(Reader); ok {
+			templates = append(templates, t.Parse(reader))
 		}
 	}
 
-	return ts
+	return templates
 }
 
 // Parse parses the templates.
-func (t *Template) Parse(r Reader) *template.Template {
-	logger.Printf("attempting to parse %+v", r.Name())
-	tt := t.template.New(filepath.Base(r.Name()))
-	if b, err := ioutil.ReadAll(r); err != nil {
+func (t *Template) Parse(reader Reader) *template.Template {
+	logger.Printf("attempting to parse %+v", reader.Name())
+	template := t.template.New(filepath.Base(reader.Name()))
+	if byte, err := ioutil.ReadAll(reader); err != nil {
 		logger.Fatalln(err)
 	} else {
-		if _, err := tt.Parse(string(b)); err != nil {
+		if _, err := template.Parse(string(byte)); err != nil {
 			logger.Fatalln(err)
 		}
 	}
 
-	return tt
+	return template
 }
 
 // Exec runs exec on the template.
 // Before you hit this stage you should really be
 // running Load(), and Parse() to get ready.
 func (t *Template) Exec() []byte {
-	var tt *template.Template
+	var template *template.Template
 
 	if t.use != "" {
 		logger.Printf("using requested %s", t.use)
-		tt = t.template.Lookup(t.use)
-		if tt == nil {
+		template = t.template.Lookup(t.use)
+		if template == nil {
 			logger.Fatalf("unable to find %s", t.use)
 		}
 	} else {
 		templates := t.template.Templates()
-		for _, ttt := range templates {
-			if ttt.Name() == "base.gohtml" || ttt.Name() == "root.gohtml" {
-				tt = ttt
+		for _, v := range templates {
+			if v.Name() == "base.gohtml" || v.Name() == "root.gohtml" {
+				template = v
 				break
 			}
 		}
 
-		if tt == nil {
-			tt = templates[0]
-			if tt == nil {
+		if template == nil {
+			template = templates[0]
+			if template == nil {
 				logger.Fatalln("no template found")
 			}
 		}
 	}
 
-	b := &bytes.Buffer{}
-	logger.Printf("executing %s", tt.Name())
-	if err := tt.Execute(b, ""); err != nil {
+	buf := &bytes.Buffer{}
+	logger.Printf("executing %s", template.Name())
+	if err := template.Execute(buf, ""); err != nil {
 		logger.Fatalln(err)
 	}
 
-	return b.Bytes()
+	return buf.Bytes()
 }
 
 // Writer interface
@@ -117,16 +117,16 @@ type Writer interface {
 
 // Write writes to stdout, or a file.
 func (t *Template) Write(b []byte, w Writer) int {
-	i, err := w.Write(b)
+	oint, err := w.Write(b)
 	if err != nil {
 		logger.Fatalln(err)
 	}
 
-	return i
+	return oint
 }
 
 func writer(file string) *os.File {
-	var fm os.FileMode
+	var mode os.FileMode
 	if file == "" {
 		logger.Println("using stdout")
 		return os.Stdout
@@ -138,8 +138,8 @@ func writer(file string) *os.File {
 	}
 
 	logger.Printf("opening a writer to %s", file)
-	fm, op := 0644, os.O_CREATE|os.O_WRONLY
-	writer, err := os.OpenFile(file, op, fm)
+	mode, op := 0644, os.O_CREATE|os.O_WRONLY
+	writer, err := os.OpenFile(file, op, mode)
 	if err != nil {
 		logger.Fatalln(err)
 	}
@@ -184,8 +184,8 @@ func readers(file string) []Reader {
 
 	files := []Reader{}
 	logger.Printf("looking for *.gohtml in %s", file)
-	p := filepath.Join(file, "*.gohtml")
-	all, err := filepath.Glob(p)
+	path := filepath.Join(file, "*.gohtml")
+	all, err := filepath.Glob(path)
 	if err != nil {
 		logger.Fatalln(err)
 	} else {
@@ -200,30 +200,41 @@ func readers(file string) []Reader {
 // Open opens all the readers, and writers
 // This is an optional method as you can open your
 // own in anyway you wish to, and pass it.
-func Open(r, w string) (_readers []Reader, _writer Writer) {
+func Open(r, w string) ([]Reader, Writer) {
 	return readers(r), writer(w)
 }
 
 /**
  */
-func cWriter(w Writer) {
-	if w != os.Stdout {
-		w.Close()
+func closeWriter(writer Writer) bool {
+	if writer != os.Stdout {
+		if err := writer.Close(); err == nil {
+			return true
+		}
 	}
+
+	return false
 }
 
 /**
  */
-func cReader(r []Reader) {
-	for _, rr := range r {
-		rr.Close()
+func closeReader(readers []Reader) bool {
+	var closed bool
+
+	for _, reader := range readers {
+		closed = true
+		if err := reader.Close(); err != nil {
+			closed = false
+		}
 	}
+
+	return closed
 }
 
 // Close closes all the writers, and readers
 // This is an optional method as you can open your
 // own in anyway you wish to, and pass it.
 func Close(r []Reader, w Writer) {
-	cWriter(w)
-	cReader(r)
+	closeWriter(w)
+	closeReader(r)
 }
