@@ -10,7 +10,7 @@ import (
 
 	"github.com/envygeeks/envp/flags"
 	"github.com/envygeeks/envp/logger"
-	"github.com/envygeeks/envp/template"
+	upstream "github.com/envygeeks/envp/template"
 )
 
 /**
@@ -23,16 +23,16 @@ func main() {
 		logger.SetOutput(os.Stderr)
 	}
 
-	ttemplate := template.New(debug)
+	template := upstream.New(debug)
 	file, output := args.String("file"), args.String("output")
-	readers, writer := template.Open(file, output)
-	defer template.Close(readers, writer)
-	ttemplate.ParseFiles(readers)
+	readers, writer := upstream.Open(file, output)
+	defer upstream.Close(readers, writer)
+	template.ParseFiles(readers)
 
 	if len(readers) == 1 {
-		ttemplate.Use(readers[0])
+		template.Use(readers[0])
 	}
 
-	b := ttemplate.Exec()
-	ttemplate.Write(b, writer)
+	b := template.Compile()
+	template.Write(b, writer)
 }

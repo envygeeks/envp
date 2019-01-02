@@ -10,7 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"text/template"
+	upstream "text/template"
 
 	"github.com/envygeeks/envp/logger"
 	"github.com/envygeeks/envp/template/helpers"
@@ -20,21 +20,24 @@ import (
 // for all of our internal functions, for
 // the template, and stuff for you.
 type Template struct {
-	use      string
-	template *template.Template
-	debug    bool
+	*upstream.Template
+
+	use   string
+	debug bool
 }
 
 // New creates a new template, and logs it for
 // the entire world to know if they really need to
 // know what's going on for debugging purposes.
 func New(debug bool) *Template {
-	template := template.New("envp")
-	helpers.New(template)
-	return &Template{
-		template: template,
+	upstream := upstream.New("envp")
+	template := &Template{
+		Template: upstream,
 		debug:    debug,
 	}
+
+	helpers.New(upstream)
+	return template
 }
 
 // Use tells us to use this specific template
@@ -43,22 +46,22 @@ func (t *Template) Use(f Reader) {
 }
 
 // ParseFiles parses all your readers
-func (t *Template) ParseFiles(readers []Reader) []*template.Template {
-	var templates []*template.Template
+func (t *Template) ParseFiles(readers []Reader) []*upstream.Template {
+	var templates []*upstream.Template
 
 	for _, v := range readers {
 		if reader, ok := v.(Reader); ok {
-			templates = append(templates, t.Parse(reader))
+			templates = append(templates, t.ParseFile(reader))
 		}
 	}
 
 	return templates
 }
 
-// Parse parses the templates.
-func (t *Template) Parse(reader Reader) *template.Template {
-	logger.Printf("attempting to parse %+v", reader.Name())
-	template := t.template.New(filepath.Base(reader.Name()))
+// ParseFile parses a reader into a template
+func (t *Template) ParseFile(reader Reader) *upstream.Template {
+	logger.Printf("attempting to add & parse %+v", reader.Name())
+	template := t.New(filepath.Base(reader.Name()))
 	if byte, err := ioutil.ReadAll(reader); err != nil {
 		logger.Fatalln(err)
 	} else {
@@ -70,20 +73,20 @@ func (t *Template) Parse(reader Reader) *template.Template {
 	return template
 }
 
-// Exec runs exec on the template.
+// Compile runs exec on the template.
 // Before you hit this stage you should really be
 // running Load(), and Parse() to get ready.
-func (t *Template) Exec() []byte {
-	var template *template.Template
+func (t *Template) Compile() []byte {
+	var template *upstream.Template
 
 	if t.use != "" {
 		logger.Printf("using requested %s", t.use)
-		template = t.template.Lookup(t.use)
+		template = t.Lookup(t.use)
 		if template == nil {
 			logger.Fatalf("unable to find %s", t.use)
 		}
 	} else {
-		templates := t.template.Templates()
+		templates := t.Templates()
 		for _, v := range templates {
 			if v.Name() == "base.gohtml" || v.Name() == "root.gohtml" {
 				template = v

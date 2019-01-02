@@ -34,7 +34,7 @@ type TestReader struct {
 
 /**
  */
-func TestParse(t *testing.T) {
+func TestParseFile(t *testing.T) {
 	type TestStruct struct {
 		expected    string
 		description string
@@ -56,8 +56,8 @@ func TestParse(t *testing.T) {
 			_name:  test.name,
 		}
 
-		template.Parse(reader)
-		atemplate := template.template.Lookup(test.name)
+		template.ParseFile(reader)
+		atemplate := template.Lookup(test.name)
 		if assert.NotNil(t, atemplate) {
 			atemplate.Execute(&str, "")
 
@@ -102,8 +102,8 @@ func TestExec(t *testing.T) {
 				test.description)
 		}
 
-		template.Parse(reader)
-		actual := string(template.Exec())
+		template.ParseFile(reader)
+		actual := string(template.Compile())
 		assert.Equal(t, test.expected,
 			actual)
 	}
@@ -129,12 +129,12 @@ func TestWrite(t *testing.T) {
 			_name:  test.name,
 		}
 
-		template.Parse(reader)
+		template.ParseFile(reader)
 		writer := &TestWriter{
 			Builder: new(strings.Builder),
 		}
 
-		out := template.Exec()
+		out := template.Compile()
 		template.Write(out, writer)
 		actual := writer.String()
 		assert.Equal(t, test.expected, actual,

@@ -241,7 +241,7 @@ func (h *Helpers) Register() *Helpers {
 		"chomp":                       strings.Trim,
 		"indent":                      h.Indent,
 		"addSpace":                    h.AddSpace,
-		"random_password":             h.RandomPassword,
+		"randomPassword":              h.RandomPassword,
 		"templateString":              h.TemplateString,
 		"strippedTemplate":            h.StrippedTemplate,
 		"fixIndentedTemplate":         h.FixIndentedTemplate,
@@ -251,7 +251,7 @@ func (h *Helpers) Register() *Helpers {
 		"templateExists":              h.TemplateExists,
 		"fixIndentation":              h.FixIndentation,
 		"envExists":                   h.EnvExists,
-		"bool_env":                    h.BoolEnv,
+		"boolEnv":                     h.BoolEnv,
 		"strip":                       h.Strip,
 		"env":                         h.Env,
 	})
