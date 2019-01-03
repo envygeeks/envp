@@ -11,28 +11,8 @@ EnvP is a simple CLI util that passes your file through [golang/Template](https:
 
 | Flag | Type | Description | Repeatable (Array) |
 |------|------|-------------| ------------------ |
-| --write-to | string | the file to output to | `false`
+| --write-to | string | the file to write to | `false`
 | --file   | string | the file, or dir | `true`
-
-```
-Build your configuration files with helpers, and access
-to the current env, so that you can shim configuration files
-in a Docker image when they do no support such mechanisms.
-
-Usage:
-  envp [flags]
-  envp [command]
-
-Available Commands:
-  info        Show build info
-
-Flags:
-      --debug              verbose debug output
-      --file stringArray   files to read in as templates
-  -h, --help               help for envp
-      --version            the current app version
-      --write-to string    write to (stdout)
-```
 
 *Leaving `--file` empty will print the final result to stdout, this is really meant for testing before you make commits but can be used any way you wish.  As well, if you set `--file` to a directory, it will glob for `.gohtml` (even if it's gotxt)*
 
