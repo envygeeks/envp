@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	upstream "text/template"
 
-	"github.com/envygeeks/envp/logger"
 	"github.com/envygeeks/envp/template/helpers"
 	"github.com/sirupsen/logrus"
 )
@@ -60,13 +59,13 @@ func (t *Template) ParseFiles(readers []Reader) []*upstream.Template {
 
 // ParseFile parses a reader into a template
 func (t *Template) ParseFile(reader Reader) *upstream.Template {
-	logger.Printf("attempting to add & parse %+v", reader.Name())
+	logrus.Debugf("attempting to add & parse %s", reader.Name())
 	template := t.New(filepath.Base(reader.Name()))
 	if byte, err := ioutil.ReadAll(reader); err != nil {
-		logger.Fatalln(err)
+		logrus.Fatalln(err)
 	} else {
 		if _, err := template.Parse(string(byte)); err != nil {
-			logger.Fatalln(err)
+			logrus.Fatalln(err)
 		}
 	}
 
@@ -80,10 +79,10 @@ func (t *Template) Compile() []byte {
 	var template *upstream.Template
 
 	if t.use != "" {
-		logger.Printf("using requested %s", t.use)
+		logrus.Debugf("using requested %s", t.use)
 		template = t.Lookup(t.use)
 		if template == nil {
-			logger.Fatalf("unable to find %s", t.use)
+			logrus.Fatalf("unable to find %s", t.use)
 		}
 	} else {
 		templates := t.Templates()
@@ -97,15 +96,15 @@ func (t *Template) Compile() []byte {
 		if template == nil {
 			template = templates[0]
 			if template == nil {
-				logger.Fatalln("no template found")
+				logrus.Fatalln("no template found")
 			}
 		}
 	}
 
 	buf := &bytes.Buffer{}
-	logger.Printf("executing %s", template.Name())
+	logrus.Debugf("executing %s", template.Name())
 	if err := template.Execute(buf, ""); err != nil {
-		logger.Fatalln(err)
+		logrus.Fatalln(err)
 	}
 
 	return buf.Bytes()
@@ -122,7 +121,7 @@ type Writer interface {
 func (t *Template) Write(b []byte, w Writer) int {
 	oint, err := w.Write(b)
 	if err != nil {
-		logger.Fatalln(err)
+		logrus.Fatalln(err)
 	}
 
 	return oint
@@ -131,20 +130,20 @@ func (t *Template) Write(b []byte, w Writer) int {
 func writer(file string) *os.File {
 	var mode os.FileMode
 	if file == "" {
-		logger.Println("using stdout")
+		logrus.Infoln("using stdout")
 		return os.Stdout
 	}
 
 	file, err := filepath.Abs(file)
 	if err != nil {
-		logger.Fatalln(err)
+		logrus.Fatalln(err)
 	}
 
-	logger.Printf("opening a writer to %s", file)
+	logrus.Debugf("opening a writer to %s", file)
 	mode, op := 0644, os.O_CREATE|os.O_WRONLY
 	writer, err := os.OpenFile(file, op, mode)
 	if err != nil {
-		logger.Fatalln(err)
+		logrus.Fatalln(err)
 	}
 
 	return writer
@@ -158,10 +157,10 @@ type Reader interface {
 }
 
 func reader(file string) *os.File {
-	logger.Printf("opening a reader to %s", file)
+	logrus.Debugf("opening a reader to %s", file)
 	reader, err := os.Open(file)
 	if err != nil {
-		logger.Fatalln(err)
+		logrus.Fatalln(err)
 	}
 
 	return reader

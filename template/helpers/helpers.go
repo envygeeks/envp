@@ -8,7 +8,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
-	"log"
 	"math/big"
 	"os"
 	"regexp"
@@ -16,7 +15,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/envygeeks/envp/logger"
+	"github.com/sirupsen/logrus"
 )
 
 // Helpers holds the template
@@ -52,7 +51,7 @@ func (h *Helpers) BoolEnv(s string) bool {
 	if v, ok := os.LookupEnv(s); ok {
 		obool, err := strconv.ParseBool(v)
 		if err != nil {
-			logger.Println(err)
+			logrus.Errorln(err)
 			return false
 		}
 
@@ -129,7 +128,7 @@ func (h *Helpers) TemplateString(s string) string {
 		var str strings.Builder
 
 		if err := template.Execute(&str, h.template); err != nil {
-			logger.Fatalln(err)
+			logrus.Fatalln(err)
 		}
 
 		out := str.String()
@@ -137,7 +136,7 @@ func (h *Helpers) TemplateString(s string) string {
 	}
 
 	// Bad template given.
-	logger.Fatalf("Unable to find %s", s)
+	logrus.Fatalf("Unable to find %s", s)
 	return ""
 }
 
@@ -185,7 +184,7 @@ func (h *Helpers) FixIndentedTemplate(s string) string {
 
 // TemplateExists checks if a template exists
 func (h *Helpers) TemplateExists(s string) bool {
-	logger.Printf("looking for template %s", s)
+	logrus.Debugf("looking for template %s", s)
 	if template := h.template.Lookup(s); template != nil {
 		return true
 	}
@@ -202,7 +201,7 @@ func rngCheck() {
 	buf := make([]byte, 1)
 	_, err := io.ReadFull(rand.Reader, buf)
 	if err != nil {
-		log.Fatalln(err)
+		logrus.Fatalln(err)
 	}
 }
 
@@ -215,7 +214,7 @@ func (h *Helpers) RandomPassword(size uint) string {
 	for i := range rune {
 		n, err := rand.Int(rand.Reader, big.NewInt(lettersLen))
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 		}
 
 		idx := n.Int64()
@@ -235,7 +234,7 @@ func New(t *template.Template) *Helpers {
 
 // Register registers the funcs
 func (h *Helpers) Register() *Helpers {
-	logger.Println("registering all the helpers")
+	logrus.Debug("registering all the helpers")
 	h.template.Funcs(template.FuncMap{
 		"split":                       strings.Split,
 		"chomp":                       strings.Trim,
