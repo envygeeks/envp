@@ -61,3 +61,8 @@ site/
 /build
 /binaries
 /priv
+
+# --
+# Local
+# --
+/test.gohtml

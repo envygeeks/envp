@@ -14,6 +14,7 @@ import (
 
 	"github.com/envygeeks/envp/logger"
 	"github.com/envygeeks/envp/template/helpers"
+	"github.com/sirupsen/logrus"
 )
 
 // Template provides a context wrapper
@@ -29,11 +30,10 @@ type Template struct {
 // New creates a new template, and logs it for
 // the entire world to know if they really need to
 // know what's going on for debugging purposes.
-func New(debug bool) *Template {
+func New() *Template {
 	upstream := upstream.New("envp")
 	template := &Template{
 		Template: upstream,
-		debug:    debug,
 	}
 
 	helpers.New(upstream)
@@ -167,44 +167,50 @@ func reader(file string) *os.File {
 	return reader
 }
 
-func readers(file string) []Reader {
-	file, err := filepath.Abs(file)
-	if err != nil {
-		logger.Fatalln(err)
-	}
+var (
+	globName = "*.gohtml"
+)
 
-	finfo, err := os.Stat(file)
-	if err == nil {
-		if !finfo.IsDir() {
-			reader := reader(file)
-			return []Reader{
-				reader,
+func readers(files []string) []Reader {
+	var readers []Reader
+
+	for _, file := range files {
+		abspath, err := filepath.Abs(file)
+		if err != nil {
+			logrus.Fatalln(err)
+		}
+
+		finfo, err := os.Stat(abspath)
+		if err != nil {
+			logrus.Fatalln(err)
+		} else {
+			if !finfo.IsDir() {
+				readers = append(readers, reader(file))
+				continue
 			}
 		}
-	} else {
-		logger.Fatalln(err)
-	}
 
-	files := []Reader{}
-	logger.Printf("looking for *.gohtml in %s", file)
-	path := filepath.Join(file, "*.gohtml")
-	all, err := filepath.Glob(path)
-	if err != nil {
-		logger.Fatalln(err)
-	} else {
-		for _, v := range all {
-			files = append(files, reader(v))
+		path := filepath.Join(file, globName)
+		logrus.Infof("looking for %s in %s", globName, file)
+		all, err := filepath.Glob(path)
+		if err != nil {
+			logrus.Fatalln(err)
 		}
+
+		for _, gfile := range all {
+			readers = append(readers, reader(gfile))
+		}
+
 	}
 
-	return files
+	return readers
 }
 
 // Open opens all the readers, and writers
 // This is an optional method as you can open your
 // own in anyway you wish to, and pass it.
-func Open(r, w string) ([]Reader, Writer) {
-	return readers(r), writer(w)
+func Open(rs []string, w string) ([]Reader, Writer) {
+	return readers(rs), writer(w)
 }
 
 /**

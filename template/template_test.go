@@ -50,7 +50,7 @@ func TestParseFile(t *testing.T) {
 	} {
 		var str strings.Builder
 
-		template := New(false)
+		template := New()
 		reader := &TestReader{
 			Reader: strings.NewReader(test.expected),
 			_name:  test.name,
@@ -89,7 +89,7 @@ func TestExec(t *testing.T) {
 			use:         "hello-2",
 		},
 	} {
-		template := New(false)
+		template := New()
 		reader := &TestReader{
 			Reader: strings.NewReader(test.expected),
 			_name:  test.name,
@@ -123,7 +123,7 @@ func TestWrite(t *testing.T) {
 			name:        "test1",
 		},
 	} {
-		template := New(false)
+		template := New()
 		reader := &TestReader{
 			Reader: strings.NewReader(test.expected),
 			_name:  test.name,
@@ -148,7 +148,7 @@ func TestOpen(t *testing.T) {
 	writf, _ := afero.TempFile(fs, "", "test-open-returns-stdout")
 	defer func() { readf.Close(); fs.Remove(readf.Name()) }()
 	defer func() { writf.Close(); fs.Remove(writf.Name()) }()
-	reader, writer := Open(readf.Name(), writf.Name())
+	reader, writer := Open([]string{readf.Name()}, writf.Name())
 	assert.NotEmpty(t, reader)
 	assert.NotNil(t, writer)
 }
